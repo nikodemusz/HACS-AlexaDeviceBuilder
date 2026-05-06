@@ -1,0 +1,11 @@
+{
+  "domain": "alexa_device_builder",
+  "name": "Alexa Device Builder",
+  "codeowners": ["@nikodemusz"],
+  "config_flow": true,
+  "documentation": "https://github.com/nikodemusz/HACS-AlexaDeviceBuilder",
+  "homeassistant": "2023.1.0",
+  "iot_class": "local_push",
+  "version": "1.0.0",
+  "requirements": []
+}

@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Alexa Device Builder",
+        "description": "Configure where the Alexa filter package file will be written. The path is relative to your Home Assistant config directory.\n\nMake sure your `configuration.yaml` includes the packages directory:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
+        "data": {
+          "package_path": "Package file path"
+        },
+        "data_description": {
+          "package_path": "Relative path within the config directory where the Alexa package YAML file will be written (e.g. packages/alexa_devices.yaml)"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Only one instance of Alexa Device Builder can be configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Alexa Device Filter",
+        "description": "Select the entities and domains to expose to Alexa. Include rules take precedence over exclude rules.\n\nLeave all lists empty to expose all entities.",
+        "data": {
+          "include_entities": "Include entities",
+          "include_domains": "Include domains",
+          "exclude_entities": "Exclude entities",
+          "exclude_domains": "Exclude domains"
+        },
+        "data_description": {
+          "include_entities": "Only these specific entities will be exposed to Alexa",
+          "include_domains": "All entities in these domains will be exposed to Alexa",
+          "exclude_entities": "These specific entities will not be exposed to Alexa",
+          "exclude_domains": "All entities in these domains will not be exposed to Alexa"
+        }
+      }
+    }
+  }
+}
