@@ -10,6 +10,22 @@
         "data_description": {
           "package_path": "Relative path within the config directory where the Alexa package YAML file will be written (e.g. packages/alexa_devices.yaml)"
         }
+      },
+      "filter": {
+        "title": "Alexa Device Filter",
+        "description": "Select the entities and domains to expose to Alexa. Include rules take precedence over exclude rules.\n\nLeave all lists empty to expose all entities.",
+        "data": {
+          "include_entities": "Include entities",
+          "include_domains": "Include domains",
+          "exclude_entities": "Exclude entities",
+          "exclude_domains": "Exclude domains"
+        },
+        "data_description": {
+          "include_entities": "Only these specific entities will be exposed to Alexa",
+          "include_domains": "All entities in these domains will be exposed to Alexa",
+          "exclude_entities": "These specific entities will not be exposed to Alexa",
+          "exclude_domains": "All entities in these domains will not be exposed to Alexa"
+        }
       }
     },
     "abort": {
