@@ -10,6 +10,22 @@
         "data_description": {
           "package_path": "Relativer Pfad innerhalb des Konfigurationsverzeichnisses, in den die Alexa-Paket-YAML-Datei geschrieben wird (z.B. packages/alexa_devices.yaml)"
         }
+      },
+      "filter": {
+        "title": "Alexa-Gerätefilter",
+        "description": "Wählen Sie die Entitäten und Domänen aus, die Alexa zugänglich sein sollen. Einschluss-Regeln haben Vorrang vor Ausschluss-Regeln.\n\nLassen Sie alle Listen leer, um alle Entitäten freizugeben.",
+        "data": {
+          "include_entities": "Entitäten einschließen",
+          "include_domains": "Domänen einschließen",
+          "exclude_entities": "Entitäten ausschließen",
+          "exclude_domains": "Domänen ausschließen"
+        },
+        "data_description": {
+          "include_entities": "Nur diese bestimmten Entitäten werden Alexa zugänglich gemacht",
+          "include_domains": "Alle Entitäten in diesen Domänen werden Alexa zugänglich gemacht",
+          "exclude_entities": "Diese bestimmten Entitäten werden nicht an Alexa weitergegeben",
+          "exclude_domains": "Alle Entitäten in diesen Domänen werden nicht an Alexa weitergegeben"
+        }
       }
     },
     "abort": {

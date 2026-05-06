@@ -23,6 +23,11 @@ class AlexaDeviceBuilderConfigFlow(
 
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize config flow."""
+        self._package_path: str = DEFAULT_PACKAGE_PATH
+        self._filter_options: dict[str, Any] = {}
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
@@ -31,14 +36,10 @@ class AlexaDeviceBuilderConfigFlow(
         self._abort_if_unique_id_configured()
 
         if user_input is not None:
-            return self.async_create_entry(
-                title="Alexa Device Builder",
-                data={
-                    CONF_PACKAGE_PATH: user_input.get(
-                        CONF_PACKAGE_PATH, DEFAULT_PACKAGE_PATH
-                    )
-                },
+            self._package_path = user_input.get(
+                CONF_PACKAGE_PATH, DEFAULT_PACKAGE_PATH
             )
+            return await self.async_step_filter()
 
         return self.async_show_form(
             step_id="user",
@@ -55,21 +56,69 @@ class AlexaDeviceBuilderConfigFlow(
             ),
         )
 
+    async def async_step_filter(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle the filter criteria setup step."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="Alexa Device Builder",
+                data={CONF_PACKAGE_PATH: self._package_path},
+                options=user_input,
+            )
+
+        domain_options = [
+            selector.SelectOptionDict(value=d, label=d)
+            for d in ALEXA_SUPPORTED_DOMAINS
+        ]
+
+        return self.async_show_form(
+            step_id="filter",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "include_entities", default=[]
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(multiple=True)
+                    ),
+                    vol.Optional(
+                        "include_domains", default=[]
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=domain_options,
+                            multiple=True,
+                            mode=selector.SelectSelectorMode.LIST,
+                        )
+                    ),
+                    vol.Optional(
+                        "exclude_entities", default=[]
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(multiple=True)
+                    ),
+                    vol.Optional(
+                        "exclude_domains", default=[]
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=domain_options,
+                            multiple=True,
+                            mode=selector.SelectSelectorMode.LIST,
+                        )
+                    ),
+                }
+            ),
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> AlexaDeviceBuilderOptionsFlow:
         """Get options flow."""
-        return AlexaDeviceBuilderOptionsFlow(config_entry)
+        return AlexaDeviceBuilderOptionsFlow()
 
 
 class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
     """Options flow for Alexa Device Builder."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
