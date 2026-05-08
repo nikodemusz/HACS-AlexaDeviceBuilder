@@ -302,4 +302,4 @@ def _build_default_names_yaml(
                 names[entity_id] = friendly_name
     if not names:
         return ""
-    return yaml.dump(names, allow_unicode=True, default_flow_style=False).strip()
+    return yaml.dump(names, allow_unicode=True, default_flow_style=False, sort_keys=True).strip()

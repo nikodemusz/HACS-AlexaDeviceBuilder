@@ -5,6 +5,8 @@ import logging
 import os
 from typing import Any
 
+import yaml
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -86,7 +88,8 @@ def _write_yaml(full_path: str, options: dict[str, Any]) -> None:
         lines.append("    entity_config:")
         for entity_id, name in sorted(entity_names.items()):
             lines.append(f"      {entity_id}:")
-            lines.append(f'        name: "{name}"')
+            name_repr = yaml.dump(name, allow_unicode=True).strip()
+            lines.append(f"        name: {name_repr}")
 
     dir_path = os.path.dirname(full_path)
     if dir_path:
