@@ -28,10 +28,24 @@
           "exclude_entities": "Diese bestimmten Entitäten werden nicht an Alexa weitergegeben",
           "exclude_domains": "Alle Entitäten in diesen Domänen werden nicht an Alexa weitergegeben"
         }
+      },
+      "entity_names": {
+        "title": "Alexa-Gerätenamen",
+        "description": "Legen Sie optional eigene Namen für die an Alexa übertragenen Entitäten fest. Jede Zeile ordnet einer Entitäts-ID einen Namen zu. Entitäten aus der Einschlussliste werden mit ihrem aktuellen Anzeigenamen vorausgefüllt.\n\nBeispiel:\n```yaml\nlight.wohnzimmer: Wohnzimmerlicht\nswitch.tv: Fernseher\n```\n\nLassen Sie das Feld leer, um die Standard-Entitätsnamen zu verwenden.",
+        "data": {
+          "entity_names": "Namensüberschreibungen für Entitäten"
+        },
+        "data_description": {
+          "entity_names": "YAML-Zuordnung von Entitäts-ID zu dem Namen, den Alexa verwenden soll"
+        }
       }
     },
     "abort": {
       "single_instance_allowed": "Es kann nur eine Instanz von Alexa Device Builder konfiguriert werden."
+    },
+    "error": {
+      "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",
+      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht)."
     }
   },
   "options": {
@@ -53,7 +67,21 @@
           "exclude_entities": "Diese bestimmten Entitäten werden nicht an Alexa weitergegeben",
           "exclude_domains": "Alle Entitäten in diesen Domänen werden nicht an Alexa weitergegeben"
         }
+      },
+      "entity_names": {
+        "title": "Alexa-Gerätenamen",
+        "description": "Legen Sie optional eigene Namen für die an Alexa übertragenen Entitäten fest. Jede Zeile ordnet einer Entitäts-ID einen Namen zu. Entitäten aus der Einschlussliste werden mit ihrem aktuellen Anzeigenamen vorausgefüllt.\n\nBeispiel:\n```yaml\nlight.wohnzimmer: Wohnzimmerlicht\nswitch.tv: Fernseher\n```\n\nLassen Sie das Feld leer, um die Standard-Entitätsnamen zu verwenden.",
+        "data": {
+          "entity_names": "Namensüberschreibungen für Entitäten"
+        },
+        "data_description": {
+          "entity_names": "YAML-Zuordnung von Entitäts-ID zu dem Namen, den Alexa verwenden soll"
+        }
       }
+    },
+    "error": {
+      "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",
+      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht)."
     }
   }
 }

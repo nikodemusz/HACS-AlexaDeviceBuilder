@@ -5,10 +5,12 @@ import logging
 import os
 from typing import Any
 
+import yaml
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_LOCALE, CONF_PACKAGE_PATH, DEFAULT_PACKAGE_PATH, DOMAIN
+from .const import CONF_ENTITY_NAMES, CONF_LOCALE, CONF_PACKAGE_PATH, DEFAULT_PACKAGE_PATH, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,6 +54,7 @@ def _write_yaml(full_path: str, options: dict[str, Any]) -> None:
     include_domains: list[str] = options.get("include_domains", [])
     exclude_entities: list[str] = options.get("exclude_entities", [])
     exclude_domains: list[str] = options.get("exclude_domains", [])
+    entity_names: dict[str, str] = options.get(CONF_ENTITY_NAMES, {})
     locale: str | None = options.get("locale") or None  # empty string means "not set"
 
     lines = [
@@ -80,10 +83,17 @@ def _write_yaml(full_path: str, options: dict[str, Any]) -> None:
     if filter_lines:
         lines.append("    filter:")
         lines.extend(filter_lines)
-    else:
+    elif not entity_names:
         lines.append(
             "    # No filter configured - all entities are exposed to Alexa"
         )
+
+    if entity_names:
+        lines.append("    entity_config:")
+        for entity_id, name in sorted(entity_names.items()):
+            lines.append(f"      {entity_id}:")
+            name_repr = yaml.dump(name, allow_unicode=True).strip()
+            lines.append(f"        name: {name_repr}")
 
     dir_path = os.path.dirname(full_path)
     if dir_path:

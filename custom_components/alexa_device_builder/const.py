@@ -5,6 +5,8 @@ DOMAIN = "alexa_device_builder"
 CONF_PACKAGE_PATH = "package_path"
 DEFAULT_PACKAGE_PATH = "packages/alexa_devices.yaml"
 
+CONF_ENTITY_NAMES = "entity_names"
+
 CONF_LOCALE = "locale"
 ALEXA_SUPPORTED_LOCALES = [
     "de-DE",
