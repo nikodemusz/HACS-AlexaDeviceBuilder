@@ -99,10 +99,10 @@ def _write_yaml(full_path: str, options: dict[str, Any]) -> None:
     if dir_path:
         os.makedirs(dir_path, exist_ok=True)
 
-    content_lines = [line for line in lines if line.strip()]
+    non_blank_lines = [line for line in lines if line.strip()]
 
     with open(full_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(content_lines) + "\n")
+        f.write("\n".join(non_blank_lines) + "\n")
 
     _LOGGER.info("Alexa package file written to %s", full_path)
 
