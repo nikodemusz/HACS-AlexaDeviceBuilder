@@ -74,6 +74,8 @@ class AlexaDeviceBuilderConfigFlow(
             for d in ALEXA_SUPPORTED_DOMAINS
         ]
         locale_options = [
+            selector.SelectOptionDict(value="", label="(Use Alexa app default)"),
+        ] + [
             selector.SelectOptionDict(value=loc, label=loc)
             for loc in ALEXA_SUPPORTED_LOCALES
         ]
@@ -149,6 +151,8 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
             for d in ALEXA_SUPPORTED_DOMAINS
         ]
         locale_options = [
+            selector.SelectOptionDict(value="", label="(Use Alexa app default)"),
+        ] + [
             selector.SelectOptionDict(value=loc, label=loc)
             for loc in ALEXA_SUPPORTED_LOCALES
         ]
