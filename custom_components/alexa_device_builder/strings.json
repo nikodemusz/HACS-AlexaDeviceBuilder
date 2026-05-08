@@ -26,10 +26,24 @@
           "exclude_entities": "These specific entities will not be exposed to Alexa",
           "exclude_domains": "All entities in these domains will not be exposed to Alexa"
         }
+      },
+      "entity_names": {
+        "title": "Alexa Device Names",
+        "description": "Optionally specify custom names for entities exposed to Alexa. Each line maps an entity ID to a name. Entities from the include list are pre-filled with their current friendly name.\n\nExample:\n```yaml\nlight.living_room: Living Room Light\nswitch.tv: Television\n```\n\nLeave empty to use the default entity names.",
+        "data": {
+          "entity_names": "Entity name overrides"
+        },
+        "data_description": {
+          "entity_names": "YAML mapping of entity_id to the custom name Alexa should use"
+        }
       }
     },
     "abort": {
       "single_instance_allowed": "Only one instance of Alexa Device Builder can be configured."
+    },
+    "error": {
+      "invalid_yaml": "Invalid YAML. Please check the format.",
+      "invalid_format": "The value must be a YAML mapping of entity_id to name (e.g. light.living_room: My Light)."
     }
   },
   "options": {
@@ -49,7 +63,21 @@
           "exclude_entities": "These specific entities will not be exposed to Alexa",
           "exclude_domains": "All entities in these domains will not be exposed to Alexa"
         }
+      },
+      "entity_names": {
+        "title": "Alexa Device Names",
+        "description": "Optionally specify custom names for entities exposed to Alexa. Each line maps an entity ID to a name. Entities from the include list are pre-filled with their current friendly name.\n\nExample:\n```yaml\nlight.living_room: Living Room Light\nswitch.tv: Television\n```\n\nLeave empty to use the default entity names.",
+        "data": {
+          "entity_names": "Entity name overrides"
+        },
+        "data_description": {
+          "entity_names": "YAML mapping of entity_id to the custom name Alexa should use"
+        }
       }
+    },
+    "error": {
+      "invalid_yaml": "Invalid YAML. Please check the format.",
+      "invalid_format": "The value must be a YAML mapping of entity_id to name (e.g. light.living_room: My Light)."
     }
   }
 }

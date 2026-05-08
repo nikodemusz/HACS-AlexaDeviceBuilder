@@ -5,6 +5,8 @@ DOMAIN = "alexa_device_builder"
 CONF_PACKAGE_PATH = "package_path"
 DEFAULT_PACKAGE_PATH = "packages/alexa_devices.yaml"
 
+CONF_ENTITY_NAMES = "entity_names"
+
 # Home Assistant domains supported by the Alexa Smart Home integration
 ALEXA_SUPPORTED_DOMAINS = [
     "alarm_control_panel",
