@@ -10,6 +10,8 @@ from homeassistant.helpers import selector
 
 from .const import (
     ALEXA_SUPPORTED_DOMAINS,
+    ALEXA_SUPPORTED_LOCALES,
+    CONF_LOCALE,
     CONF_PACKAGE_PATH,
     DEFAULT_PACKAGE_PATH,
     DOMAIN,
@@ -71,11 +73,25 @@ class AlexaDeviceBuilderConfigFlow(
             selector.SelectOptionDict(value=d, label=d)
             for d in ALEXA_SUPPORTED_DOMAINS
         ]
+        locale_options = [
+            selector.SelectOptionDict(value=loc, label=loc)
+            for loc in ALEXA_SUPPORTED_LOCALES
+        ]
 
         return self.async_show_form(
             step_id="filter",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(
+                        CONF_LOCALE, default=""
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=locale_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
+                        )
+                    ),
                     vol.Optional(
                         "include_entities", default=[]
                     ): selector.EntitySelector(
@@ -132,11 +148,26 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
             selector.SelectOptionDict(value=d, label=d)
             for d in ALEXA_SUPPORTED_DOMAINS
         ]
+        locale_options = [
+            selector.SelectOptionDict(value=loc, label=loc)
+            for loc in ALEXA_SUPPORTED_LOCALES
+        ]
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(
+                        CONF_LOCALE,
+                        default=options.get(CONF_LOCALE, ""),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=locale_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
+                        )
+                    ),
                     vol.Optional(
                         "include_entities",
                         default=list(options.get("include_entities", [])),
