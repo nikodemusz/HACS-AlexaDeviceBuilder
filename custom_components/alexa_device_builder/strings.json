@@ -15,12 +15,14 @@
         "title": "Alexa Device Filter",
         "description": "Select the entities and domains to expose to Alexa. Include rules take precedence over exclude rules.\n\nLeave all lists empty to expose all entities.",
         "data": {
+          "locale": "Locale",
           "include_entities": "Include entities",
           "include_domains": "Include domains",
           "exclude_entities": "Exclude entities",
           "exclude_domains": "Exclude domains"
         },
         "data_description": {
+          "locale": "Locale used by Alexa for this smart home (e.g. de-DE, en-US). Leave empty to use the Alexa app default.",
           "include_entities": "Only these specific entities will be exposed to Alexa",
           "include_domains": "All entities in these domains will be exposed to Alexa",
           "exclude_entities": "These specific entities will not be exposed to Alexa",
@@ -52,12 +54,14 @@
         "title": "Alexa Device Filter",
         "description": "Select the entities and domains to expose to Alexa. Include rules take precedence over exclude rules.\n\nLeave all lists empty to expose all entities.",
         "data": {
+          "locale": "Locale",
           "include_entities": "Include entities",
           "include_domains": "Include domains",
           "exclude_entities": "Exclude entities",
           "exclude_domains": "Exclude domains"
         },
         "data_description": {
+          "locale": "Locale used by Alexa for this smart home (e.g. de-DE, en-US). Leave empty to use the Alexa app default.",
           "include_entities": "Only these specific entities will be exposed to Alexa",
           "include_domains": "All entities in these domains will be exposed to Alexa",
           "exclude_entities": "These specific entities will not be exposed to Alexa",

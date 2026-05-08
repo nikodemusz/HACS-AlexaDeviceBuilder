@@ -7,6 +7,25 @@ DEFAULT_PACKAGE_PATH = "packages/alexa_devices.yaml"
 
 CONF_ENTITY_NAMES = "entity_names"
 
+CONF_LOCALE = "locale"
+ALEXA_SUPPORTED_LOCALES = [
+    "de-DE",
+    "en-AU",
+    "en-CA",
+    "en-GB",
+    "en-IN",
+    "en-US",
+    "es-ES",
+    "es-MX",
+    "es-US",
+    "fr-CA",
+    "fr-FR",
+    "hi-IN",
+    "it-IT",
+    "ja-JP",
+    "pt-BR",
+]
+
 # Home Assistant domains supported by the Alexa Smart Home integration
 ALEXA_SUPPORTED_DOMAINS = [
     "alarm_control_panel",
