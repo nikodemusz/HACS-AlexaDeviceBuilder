@@ -92,7 +92,12 @@ def _write_yaml(full_path: str, options: dict[str, Any]) -> None:
         lines.append("    entity_config:")
         for entity_id, name in sorted(entity_names.items()):
             lines.append(f"      {entity_id}:")
-            yaml_lines = yaml.dump({"name": name}, allow_unicode=True).splitlines()
+            yaml_lines = yaml.dump(
+                {"name": name},
+                allow_unicode=True,
+                explicit_start=False,
+                explicit_end=False,
+            ).splitlines()
             if yaml_lines and yaml_lines[0].strip() == "---":
                 yaml_lines = yaml_lines[1:]
             if yaml_lines and yaml_lines[-1].strip() == "...":
