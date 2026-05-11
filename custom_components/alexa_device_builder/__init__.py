@@ -93,10 +93,14 @@ def _write_yaml(full_path: str, options: dict[str, Any]) -> None:
         for entity_id, name in sorted(entity_names.items()):
             lines.append(f"      {entity_id}:")
             yaml_lines = yaml.dump({"name": name}, allow_unicode=True).splitlines()
-            name_lines = [line for line in yaml_lines if line.strip() not in {"---", "..."}]
-            if not name_lines:
-                name_lines = ["name: ''"]
-            lines.extend(f"        {line}" for line in name_lines)
+            if yaml_lines and yaml_lines[0].strip() == "---":
+                yaml_lines = yaml_lines[1:]
+            if yaml_lines and yaml_lines[-1].strip() == "...":
+                yaml_lines = yaml_lines[:-1]
+            if not yaml_lines:
+                _LOGGER.warning("Could not render name for %s, writing empty name", entity_id)
+                yaml_lines = ["name: ''"]
+            lines.extend(f"        {line}" for line in yaml_lines)
 
     dir_path = os.path.dirname(full_path)
     if dir_path:
