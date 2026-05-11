@@ -92,11 +92,8 @@ def _write_yaml(full_path: str, options: dict[str, Any]) -> None:
         lines.append("    entity_config:")
         for entity_id, name in sorted(entity_names.items()):
             lines.append(f"      {entity_id}:")
-            name_lines = [
-                line
-                for line in yaml.dump({"name": name}, allow_unicode=True).splitlines()
-                if line.strip() != "..."
-            ]
+            dumped_name_lines = yaml.dump({"name": name}, allow_unicode=True).splitlines()
+            name_lines = [line for line in dumped_name_lines if line.strip() != "..."]
             lines.extend(f"        {line}" for line in name_lines)
 
     dir_path = os.path.dirname(full_path)
