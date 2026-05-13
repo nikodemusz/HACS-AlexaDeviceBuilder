@@ -407,7 +407,7 @@ def _expand_group_members(hass: Any, entity_ids: set[str]) -> None:
     seen_groups: set[str] = set()
 
     while pending_groups:
-        group_entity_id = pending_groups.pop()
+        group_entity_id = pending_groups.popleft()
         if group_entity_id in seen_groups:
             continue
         seen_groups.add(group_entity_id)
