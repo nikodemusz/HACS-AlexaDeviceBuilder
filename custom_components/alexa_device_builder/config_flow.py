@@ -1,6 +1,7 @@
 """Config flow for Alexa Device Builder."""
 from __future__ import annotations
 
+from collections import deque
 from typing import Any
 
 import yaml
@@ -157,7 +158,12 @@ class AlexaDeviceBuilderConfigFlow(
                 )
 
         default_yaml = _build_default_names_yaml(
-            self.hass, self._filter_options.get("include_entities", []), {}
+            self.hass,
+            self._filter_options.get("include_entities", []),
+            self._filter_options.get("include_domains", []),
+            self._filter_options.get("exclude_entities", []),
+            self._filter_options.get("exclude_domains", []),
+            {},
         )
 
         return self.async_show_form(
@@ -297,6 +303,9 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
         default_yaml = _build_default_names_yaml(
             self.hass,
             self._filter_options.get("include_entities", []),
+            self._filter_options.get("include_domains", []),
+            self._filter_options.get("exclude_entities", []),
+            self._filter_options.get("exclude_domains", []),
             existing_names,
         )
 
@@ -321,15 +330,26 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
 def _build_default_names_yaml(
     hass: Any,
     include_entities: list[str],
+    include_domains: list[str],
+    exclude_entities: list[str],
+    exclude_domains: list[str],
     existing_names: dict[str, str],
 ) -> str:
-    """Build a YAML string pre-populated with friendly names for include_entities.
+    """Build a YAML string pre-populated with friendly names for exposed entities.
 
     Already-configured overrides are preserved; new entities get their HA friendly
     name as the suggested value.
     """
+    entity_ids = _resolve_exposed_entities(
+        hass,
+        include_entities,
+        include_domains,
+        exclude_entities,
+        exclude_domains,
+    )
+
     names: dict[str, str] = dict(existing_names)
-    for entity_id in include_entities:
+    for entity_id in sorted(entity_ids):
         if entity_id not in names:
             state = hass.states.get(entity_id)
             if state:
@@ -337,4 +357,77 @@ def _build_default_names_yaml(
                 names[entity_id] = friendly_name
     if not names:
         return ""
-    return yaml.dump(names, allow_unicode=True, default_flow_style=False, sort_keys=True).strip()
+    return yaml.dump(
+        names, allow_unicode=True, default_flow_style=False, sort_keys=True
+    ).strip()
+
+
+def _resolve_exposed_entities(
+    hass: Any,
+    include_entities: list[str],
+    include_domains: list[str],
+    exclude_entities: list[str],
+    exclude_domains: list[str],
+) -> set[str]:
+    """Resolve entities exposed by include/exclude filters for name overrides."""
+    include_entities_set = {
+        e for e in include_entities if isinstance(e, str) and "." in e
+    }
+    include_domains_set = {d for d in include_domains if isinstance(d, str) and d}
+    exclude_entities_set = {
+        e for e in exclude_entities if isinstance(e, str) and "." in e
+    }
+    exclude_domains_set = {d for d in exclude_domains if isinstance(d, str) and d}
+
+    states = hass.states.async_all()
+
+    if include_entities_set or include_domains_set:
+        exposed_entities = set(include_entities_set)
+        for state in states:
+            if state.domain in include_domains_set:
+                exposed_entities.add(state.entity_id)
+    else:
+        exposed_entities = {state.entity_id for state in states}
+
+    _expand_group_members(hass, exposed_entities)
+
+    exposed_entities -= exclude_entities_set
+    return {
+        entity_id
+        for entity_id in exposed_entities
+        if "." in entity_id and entity_id.split(".", 1)[0] not in exclude_domains_set
+    }
+
+
+def _expand_group_members(hass: Any, entity_ids: set[str]) -> None:
+    """Expand group entities to also include their members."""
+    pending_groups = deque(
+        entity_id for entity_id in entity_ids if entity_id.startswith("group.")
+    )
+    seen_groups: set[str] = set()
+
+    while pending_groups:
+        group_entity_id = pending_groups.popleft()
+        if group_entity_id in seen_groups:
+            continue
+        seen_groups.add(group_entity_id)
+
+        group_state = hass.states.get(group_entity_id)
+        if not group_state:
+            continue
+
+        members = group_state.attributes.get("entity_id")
+        if not isinstance(members, list):
+            continue
+
+        for member_entity_id in members:
+            if not isinstance(member_entity_id, str) or "." not in member_entity_id:
+                continue
+            if member_entity_id in entity_ids:
+                continue
+            entity_ids.add(member_entity_id)
+            if (
+                member_entity_id.startswith("group.")
+                and member_entity_id not in seen_groups
+            ):
+                pending_groups.append(member_entity_id)
