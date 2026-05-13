@@ -1,6 +1,7 @@
 """Config flow for Alexa Device Builder."""
 from __future__ import annotations
 
+from collections import deque
 from typing import Any
 
 import yaml
@@ -400,9 +401,9 @@ def _resolve_exposed_entities(
 
 def _expand_group_members(hass: Any, entity_ids: set[str]) -> None:
     """Expand group entities to also include their members."""
-    pending_groups = [
+    pending_groups = deque(
         entity_id for entity_id in entity_ids if entity_id.startswith("group.")
-    ]
+    )
     seen_groups: set[str] = set()
 
     while pending_groups:
@@ -422,7 +423,11 @@ def _expand_group_members(hass: Any, entity_ids: set[str]) -> None:
         for member_entity_id in members:
             if not isinstance(member_entity_id, str) or "." not in member_entity_id:
                 continue
-            if member_entity_id not in entity_ids:
-                entity_ids.add(member_entity_id)
-            if member_entity_id.startswith("group.") and member_entity_id not in seen_groups:
+            if member_entity_id in entity_ids:
+                continue
+            entity_ids.add(member_entity_id)
+            if (
+                member_entity_id.startswith("group.")
+                and member_entity_id not in seen_groups
+            ):
                 pending_groups.append(member_entity_id)
