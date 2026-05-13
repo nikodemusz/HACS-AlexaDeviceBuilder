@@ -31,7 +31,7 @@
       },
       "entity_names": {
         "title": "Alexa Device Names",
-        "description": "Optionally specify custom names for entities exposed to Alexa. Each line maps an entity ID to a name. Entities from the include list are pre-filled with their current friendly name.\n\nExample:\n```yaml\nlight.living_room: Living Room Light\nswitch.tv: Television\n```\n\nLeave empty to use the default entity names.",
+        "description": "Optionally specify custom names for entities exposed to Alexa. Each line maps an entity ID to a name. Entities found via include entities/domains (including group members) are pre-filled with their current friendly name.\n\nExample:\n```yaml\nlight.living_room: Living Room Light\nswitch.tv: Television\n```\n\nLeave empty to use the default entity names.",
         "data": {
           "entity_names": "Entity name overrides"
         },
@@ -70,7 +70,7 @@
       },
       "entity_names": {
         "title": "Alexa Device Names",
-        "description": "Optionally specify custom names for entities exposed to Alexa. Each line maps an entity ID to a name. Entities from the include list are pre-filled with their current friendly name.\n\nExample:\n```yaml\nlight.living_room: Living Room Light\nswitch.tv: Television\n```\n\nLeave empty to use the default entity names.",
+        "description": "Optionally specify custom names for entities exposed to Alexa. Each line maps an entity ID to a name. Entities found via include entities/domains (including group members) are pre-filled with their current friendly name.\n\nExample:\n```yaml\nlight.living_room: Living Room Light\nswitch.tv: Television\n```\n\nLeave empty to use the default entity names.",
         "data": {
           "entity_names": "Entity name overrides"
         },
