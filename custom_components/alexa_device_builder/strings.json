@@ -3,14 +3,24 @@
     "step": {
       "user": {
         "title": "Alexa Device Builder",
-        "description": "Choose how Alexa Device Builder should operate. In Phase 1, only YAML package mode is active.\n\nFor YAML package mode, configure where the Alexa filter package file will be written. The path is relative to your Home Assistant config directory.\n\nMake sure your `configuration.yaml` includes the packages directory:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
+        "description": "Choose how Alexa Device Builder should operate.\n\nFor YAML package mode, configure where the Alexa filter package file will be written. The path is relative to your Home Assistant config directory.\n\nMake sure your `configuration.yaml` includes the packages directory:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
         "data": {
           "operation_mode": "Operation mode",
           "package_path": "Package file path"
         },
         "data_description": {
-          "operation_mode": "Select how Alexa Device Builder should work. Amazon account management is prepared as Phase 1 preview and not active yet.",
+          "operation_mode": "Select how Alexa Device Builder should work. Amazon account management setup is available in Phase 2; runtime actions are introduced in later phases.",
           "package_path": "Relative path within the config directory where the Alexa package YAML file will be written (e.g. packages/alexa_devices.yaml)"
+        }
+      },
+      "amazon": {
+        "title": "Amazon Account Management",
+        "description": "Configure basic Amazon mode settings. Device-management runtime actions are introduced in later phases.",
+        "data": {
+          "amazon_region": "Amazon region"
+        },
+        "data_description": {
+          "amazon_region": "Amazon marketplace/region to use later for account-based device management."
         }
       },
       "filter": {
@@ -43,8 +53,7 @@
       }
     },
     "abort": {
-      "single_instance_allowed": "Only one instance of Alexa Device Builder can be configured.",
-      "amazon_mode_not_ready": "Amazon account management is not active yet. Please use Home Assistant YAML package mode."
+      "single_instance_allowed": "Only one instance of Alexa Device Builder can be configured."
     },
     "error": {
       "invalid_yaml": "Invalid YAML. Please check the format.",
@@ -79,6 +88,16 @@
         },
         "data_description": {
           "entity_names": "YAML mapping of entity_id to the custom name Alexa should use"
+        }
+      },
+      "amazon": {
+        "title": "Amazon Account Management",
+        "description": "Update Amazon mode settings.",
+        "data": {
+          "amazon_region": "Amazon region"
+        },
+        "data_description": {
+          "amazon_region": "Amazon marketplace/region used for account mode."
         }
       }
     },

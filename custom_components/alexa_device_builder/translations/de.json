@@ -3,14 +3,24 @@
     "step": {
       "user": {
         "title": "Alexa Device Builder",
-        "description": "Wählen Sie, wie Alexa Device Builder arbeiten soll. In Phase 1 ist nur der YAML-Paketmodus aktiv.\n\nFür den YAML-Paketmodus legen Sie fest, wohin die Alexa-Filter-Paketdatei geschrieben wird. Der Pfad ist relativ zum Home Assistant-Konfigurationsverzeichnis.\n\nStellen Sie sicher, dass Ihre `configuration.yaml` das Pakete-Verzeichnis einbindet:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
+        "description": "Wählen Sie, wie Alexa Device Builder arbeiten soll.\n\nFür den YAML-Paketmodus legen Sie fest, wohin die Alexa-Filter-Paketdatei geschrieben wird. Der Pfad ist relativ zum Home Assistant-Konfigurationsverzeichnis.\n\nStellen Sie sicher, dass Ihre `configuration.yaml` das Pakete-Verzeichnis einbindet:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
         "data": {
           "operation_mode": "Betriebsmodus",
           "package_path": "Paketdatei-Pfad"
         },
         "data_description": {
-          "operation_mode": "Wählen Sie, wie Alexa Device Builder arbeiten soll. Amazon-Kontoverwaltung ist als Phase-1-Vorschau vorbereitet und noch nicht aktiv.",
+          "operation_mode": "Wählen Sie, wie Alexa Device Builder arbeiten soll. Die Amazon-Kontoverwaltungs-Konfiguration ist in Phase 2 verfügbar; Laufzeitaktionen folgen in späteren Phasen.",
           "package_path": "Relativer Pfad innerhalb des Konfigurationsverzeichnisses, in den die Alexa-Paket-YAML-Datei geschrieben wird (z.B. packages/alexa_devices.yaml)"
+        }
+      },
+      "amazon": {
+        "title": "Amazon-Kontoverwaltung",
+        "description": "Konfigurieren Sie grundlegende Einstellungen für den Amazon-Modus. Laufzeitaktionen zur Geräteverwaltung folgen in späteren Phasen.",
+        "data": {
+          "amazon_region": "Amazon-Region"
+        },
+        "data_description": {
+          "amazon_region": "Amazon-Marktplatz/Region für die spätere kontobasierte Geräteverwaltung."
         }
       },
       "filter": {
@@ -43,8 +53,7 @@
       }
     },
     "abort": {
-      "single_instance_allowed": "Es kann nur eine Instanz von Alexa Device Builder konfiguriert werden.",
-      "amazon_mode_not_ready": "Die Amazon-Kontoverwaltung ist noch nicht aktiv. Bitte verwenden Sie den Home-Assistant-YAML-Paketmodus."
+      "single_instance_allowed": "Es kann nur eine Instanz von Alexa Device Builder konfiguriert werden."
     },
     "error": {
       "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",
@@ -79,6 +88,16 @@
         },
         "data_description": {
           "entity_names": "YAML-Zuordnung von Entitäts-ID zu dem Namen, den Alexa verwenden soll"
+        }
+      },
+      "amazon": {
+        "title": "Amazon-Kontoverwaltung",
+        "description": "Aktualisieren Sie die Einstellungen des Amazon-Modus.",
+        "data": {
+          "amazon_region": "Amazon-Region"
+        },
+        "data_description": {
+          "amazon_region": "Amazon-Marktplatz/Region für den Konto-Modus."
         }
       }
     },

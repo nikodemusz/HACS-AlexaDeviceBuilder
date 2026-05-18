@@ -62,8 +62,9 @@ If the `packages/` directory does not exist in your config directory, the integr
 2. Search for **Alexa Device Builder**
 3. Choose the **Operation mode**:
    - **Home Assistant YAML package** (active)
-   - **Amazon account management (Phase 1 preview)** (not active yet)
-4. Set the package file path (default: `packages/alexa_devices.yaml`) and click **Submit**
+   - **Amazon account management (Phase 2 setup)** (basic setup active, runtime actions pending)
+4. If you selected YAML mode, set the package file path (default: `packages/alexa_devices.yaml`)
+5. Complete setup
 
 ### Step 2 – Configure device filters
 

@@ -11,12 +11,15 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    AMAZON_REGIONS,
     ALEXA_SUPPORTED_DOMAINS,
     ALEXA_SUPPORTED_LOCALES,
+    CONF_AMAZON_REGION,
     CONF_ENTITY_NAMES,
     CONF_LOCALE,
     CONF_OPERATION_MODE,
     CONF_PACKAGE_PATH,
+    DEFAULT_AMAZON_REGION,
     DEFAULT_PACKAGE_PATH,
     DOMAIN,
     MODE_AMAZON_ACCOUNT,
@@ -35,6 +38,7 @@ class AlexaDeviceBuilderConfigFlow(
         """Initialize config flow."""
         self._package_path: str = DEFAULT_PACKAGE_PATH
         self._operation_mode: str = MODE_HA_YAML
+        self._amazon_region: str = DEFAULT_AMAZON_REGION
         self._filter_options: dict[str, Any] = {}
 
     async def async_step_user(
@@ -50,7 +54,7 @@ class AlexaDeviceBuilderConfigFlow(
             )
             self._operation_mode = user_input.get(CONF_OPERATION_MODE, MODE_HA_YAML)
             if self._operation_mode == MODE_AMAZON_ACCOUNT:
-                return self.async_abort(reason="amazon_mode_not_ready")
+                return await self.async_step_amazon()
             return await self.async_step_filter()
 
         operation_mode_options = [
@@ -59,7 +63,7 @@ class AlexaDeviceBuilderConfigFlow(
             ),
             selector.SelectOptionDict(
                 value=MODE_AMAZON_ACCOUNT,
-                label="Amazon account management (Phase 1 preview)",
+                label="Amazon account management (Phase 2 setup)",
             ),
         ]
 
@@ -83,6 +87,46 @@ class AlexaDeviceBuilderConfigFlow(
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT
+                        )
+                    ),
+                }
+            ),
+        )
+
+    async def async_step_amazon(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle Amazon mode setup."""
+        if user_input is not None:
+            self._amazon_region = user_input.get(
+                CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION
+            )
+            return self.async_create_entry(
+                title="Alexa Device Builder (Amazon)",
+                data={
+                    CONF_OPERATION_MODE: MODE_AMAZON_ACCOUNT,
+                    CONF_AMAZON_REGION: self._amazon_region,
+                },
+                options={},
+            )
+
+        amazon_region_options = [
+            selector.SelectOptionDict(value=region, label=region)
+            for region in AMAZON_REGIONS
+        ]
+        return self.async_show_form(
+            step_id="amazon",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_AMAZON_REGION,
+                        default=DEFAULT_AMAZON_REGION,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=amazon_region_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
                         )
                     ),
                 }
@@ -229,11 +273,15 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
     def __init__(self) -> None:
         """Initialize options flow."""
         self._filter_options: dict[str, Any] = {}
+        self._amazon_region: str = DEFAULT_AMAZON_REGION
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Handle options."""
+        if self.config_entry.data.get(CONF_OPERATION_MODE) == MODE_AMAZON_ACCOUNT:
+            return await self.async_step_amazon(user_input)
+
         if user_input is not None:
             self._filter_options = user_input
             return await self.async_step_entity_names()
@@ -295,6 +343,46 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
                             options=domain_options,
                             multiple=True,
                             mode=selector.SelectSelectorMode.LIST,
+                        )
+                    ),
+                }
+            ),
+        )
+
+    async def async_step_amazon(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle Amazon mode options."""
+        if user_input is not None:
+            self._amazon_region = user_input.get(
+                CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION
+            )
+            return self.async_create_entry(
+                title="",
+                data={CONF_AMAZON_REGION: self._amazon_region},
+            )
+
+        amazon_region_options = [
+            selector.SelectOptionDict(value=region, label=region)
+            for region in AMAZON_REGIONS
+        ]
+        current_region = self.config_entry.options.get(
+            CONF_AMAZON_REGION,
+            self.config_entry.data.get(CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION),
+        )
+        return self.async_show_form(
+            step_id="amazon",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_AMAZON_REGION,
+                        default=current_region,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=amazon_region_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
                         )
                     ),
                 }

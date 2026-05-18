@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
+    CONF_AMAZON_REGION,
     CONF_ENTITY_NAMES,
     CONF_LOCALE,
     CONF_OPERATION_MODE,
@@ -25,16 +26,22 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Alexa Device Builder from a config entry."""
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
     operation_mode = entry.data.get(CONF_OPERATION_MODE, MODE_HA_YAML)
-    if operation_mode != MODE_HA_YAML:
-        _LOGGER.warning(
-            "Operation mode '%s' is not active yet; skipping YAML generation",
-            operation_mode,
-        )
+    if operation_mode == MODE_HA_YAML:
+        await _write_alexa_package(hass, entry)
         return True
 
-    await _write_alexa_package(hass, entry)
-    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+    amazon_region = entry.options.get(
+        CONF_AMAZON_REGION,
+        entry.data.get(CONF_AMAZON_REGION, "unknown"),
+    )
+    _LOGGER.info(
+        "Operation mode '%s' configured for region '%s'; runtime actions are pending future phases",
+        operation_mode,
+        amazon_region,
+    )
     return True
 
 
@@ -45,6 +52,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Remove a config entry and delete the generated package file."""
+    operation_mode = entry.data.get(CONF_OPERATION_MODE, MODE_HA_YAML)
+    if operation_mode != MODE_HA_YAML:
+        return
+
     package_path = entry.data.get(CONF_PACKAGE_PATH, DEFAULT_PACKAGE_PATH)
     full_path = hass.config.path(package_path)
     await hass.async_add_executor_job(_remove_yaml, full_path)
@@ -52,7 +63,12 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle options update."""
-    await _write_alexa_package(hass, entry)
+    operation_mode = entry.data.get(CONF_OPERATION_MODE, MODE_HA_YAML)
+    if operation_mode == MODE_HA_YAML:
+        await _write_alexa_package(hass, entry)
+        return
+
+    _LOGGER.debug("Options updated for non-YAML mode '%s'", operation_mode)
 
 
 async def _write_alexa_package(hass: HomeAssistant, entry: ConfigEntry) -> None:
