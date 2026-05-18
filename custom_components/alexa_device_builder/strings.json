@@ -3,11 +3,13 @@
     "step": {
       "user": {
         "title": "Alexa Device Builder",
-        "description": "Configure where the Alexa filter package file will be written. The path is relative to your Home Assistant config directory.\n\nMake sure your `configuration.yaml` includes the packages directory:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
+        "description": "Choose how Alexa Device Builder should operate. In Phase 1, only YAML package mode is active.\n\nFor YAML package mode, configure where the Alexa filter package file will be written. The path is relative to your Home Assistant config directory.\n\nMake sure your `configuration.yaml` includes the packages directory:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
         "data": {
+          "operation_mode": "Operation mode",
           "package_path": "Package file path"
         },
         "data_description": {
+          "operation_mode": "Select how Alexa Device Builder should work. Amazon account management is prepared as Phase 1 preview and not active yet.",
           "package_path": "Relative path within the config directory where the Alexa package YAML file will be written (e.g. packages/alexa_devices.yaml)"
         }
       },
@@ -41,7 +43,8 @@
       }
     },
     "abort": {
-      "single_instance_allowed": "Only one instance of Alexa Device Builder can be configured."
+      "single_instance_allowed": "Only one instance of Alexa Device Builder can be configured.",
+      "amazon_mode_not_ready": "Amazon account management is not active yet. Please use Home Assistant YAML package mode."
     },
     "error": {
       "invalid_yaml": "Invalid YAML. Please check the format.",

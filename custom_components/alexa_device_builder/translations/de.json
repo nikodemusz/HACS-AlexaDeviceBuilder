@@ -3,11 +3,13 @@
     "step": {
       "user": {
         "title": "Alexa Device Builder",
-        "description": "Legen Sie fest, wohin die Alexa-Filter-Paketdatei geschrieben wird. Der Pfad ist relativ zum Home Assistant-Konfigurationsverzeichnis.\n\nStellen Sie sicher, dass Ihre `configuration.yaml` das Pakete-Verzeichnis einbindet:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
+        "description": "Wählen Sie, wie Alexa Device Builder arbeiten soll. In Phase 1 ist nur der YAML-Paketmodus aktiv.\n\nFür den YAML-Paketmodus legen Sie fest, wohin die Alexa-Filter-Paketdatei geschrieben wird. Der Pfad ist relativ zum Home Assistant-Konfigurationsverzeichnis.\n\nStellen Sie sicher, dass Ihre `configuration.yaml` das Pakete-Verzeichnis einbindet:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
         "data": {
+          "operation_mode": "Betriebsmodus",
           "package_path": "Paketdatei-Pfad"
         },
         "data_description": {
+          "operation_mode": "Wählen Sie, wie Alexa Device Builder arbeiten soll. Amazon-Kontoverwaltung ist als Phase-1-Vorschau vorbereitet und noch nicht aktiv.",
           "package_path": "Relativer Pfad innerhalb des Konfigurationsverzeichnisses, in den die Alexa-Paket-YAML-Datei geschrieben wird (z.B. packages/alexa_devices.yaml)"
         }
       },
@@ -41,7 +43,8 @@
       }
     },
     "abort": {
-      "single_instance_allowed": "Es kann nur eine Instanz von Alexa Device Builder konfiguriert werden."
+      "single_instance_allowed": "Es kann nur eine Instanz von Alexa Device Builder konfiguriert werden.",
+      "amazon_mode_not_ready": "Die Amazon-Kontoverwaltung ist noch nicht aktiv. Bitte verwenden Sie den Home-Assistant-YAML-Paketmodus."
     },
     "error": {
       "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",

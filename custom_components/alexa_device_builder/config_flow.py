@@ -15,9 +15,12 @@ from .const import (
     ALEXA_SUPPORTED_LOCALES,
     CONF_ENTITY_NAMES,
     CONF_LOCALE,
+    CONF_OPERATION_MODE,
     CONF_PACKAGE_PATH,
     DEFAULT_PACKAGE_PATH,
     DOMAIN,
+    MODE_AMAZON_ACCOUNT,
+    MODE_HA_YAML,
 )
 
 
@@ -31,6 +34,7 @@ class AlexaDeviceBuilderConfigFlow(
     def __init__(self) -> None:
         """Initialize config flow."""
         self._package_path: str = DEFAULT_PACKAGE_PATH
+        self._operation_mode: str = MODE_HA_YAML
         self._filter_options: dict[str, Any] = {}
 
     async def async_step_user(
@@ -44,12 +48,36 @@ class AlexaDeviceBuilderConfigFlow(
             self._package_path = user_input.get(
                 CONF_PACKAGE_PATH, DEFAULT_PACKAGE_PATH
             )
+            self._operation_mode = user_input.get(CONF_OPERATION_MODE, MODE_HA_YAML)
+            if self._operation_mode == MODE_AMAZON_ACCOUNT:
+                return self.async_abort(reason="amazon_mode_not_ready")
             return await self.async_step_filter()
+
+        operation_mode_options = [
+            selector.SelectOptionDict(
+                value=MODE_HA_YAML, label="Home Assistant YAML package"
+            ),
+            selector.SelectOptionDict(
+                value=MODE_AMAZON_ACCOUNT,
+                label="Amazon account management (Phase 1 preview)",
+            ),
+        ]
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(
+                        CONF_OPERATION_MODE,
+                        default=MODE_HA_YAML,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=operation_mode_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
+                        )
+                    ),
                     vol.Optional(
                         CONF_PACKAGE_PATH, default=DEFAULT_PACKAGE_PATH
                     ): selector.TextSelector(
@@ -153,7 +181,10 @@ class AlexaDeviceBuilderConfigFlow(
                     options[CONF_ENTITY_NAMES] = entity_names
                 return self.async_create_entry(
                     title="Alexa Device Builder",
-                    data={CONF_PACKAGE_PATH: self._package_path},
+                    data={
+                        CONF_OPERATION_MODE: self._operation_mode,
+                        CONF_PACKAGE_PATH: self._package_path,
+                    },
                     options=options,
                 )
 
