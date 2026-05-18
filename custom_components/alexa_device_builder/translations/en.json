@@ -9,7 +9,7 @@
           "package_path": "Package file path"
         },
         "data_description": {
-          "operation_mode": "Select how Alexa Device Builder should work. Amazon account mode executes device rename/remove sync independently from HA exposure and requires an active alexa_media login session.",
+          "operation_mode": "Select how Alexa Device Builder should work. Amazon account mode executes device rename/remove sync independently from HA exposure and requires an active Alexa Media Player login session.",
           "package_path": "Relative path within the config directory where the Alexa package YAML file will be written (e.g. packages/alexa_devices.yaml)"
         }
       },

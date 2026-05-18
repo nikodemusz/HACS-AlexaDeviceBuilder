@@ -205,7 +205,7 @@ async def _sync_amazon_devices(
     alexa_api = _get_alexa_api_class()
     if alexa_api is None:
         _LOGGER.warning(
-            "Amazon sync skipped (%s): alexapy is unavailable. Install/configure Alexa Media Player first.",
+            "Amazon sync skipped (%s): Alexa Media Player integration is not available or configured.",
             reason,
         )
         return
@@ -213,7 +213,7 @@ async def _sync_amazon_devices(
     login_obj = _resolve_alexa_media_login(hass, amazon_region)
     if login_obj is None:
         _LOGGER.warning(
-            "Amazon sync skipped (%s): no active alexa_media login found for region '%s'.",
+            "Amazon sync skipped (%s): no active Alexa Media Player login found for region '%s'.",
             reason,
             amazon_region,
         )

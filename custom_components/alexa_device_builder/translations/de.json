@@ -9,7 +9,7 @@
           "package_path": "Paketdatei-Pfad"
         },
         "data_description": {
-          "operation_mode": "Wählen Sie, wie Alexa Device Builder arbeiten soll. Der Amazon-Konto-Modus führt Geräte-Umbenennen/Löschen unabhängig von der HA-Freigabe aus und benötigt eine aktive alexa_media-Anmeldesitzung.",
+          "operation_mode": "Wählen Sie, wie Alexa Device Builder arbeiten soll. Der Amazon-Konto-Modus führt Geräte-Umbenennen/Löschen unabhängig von der HA-Freigabe aus und benötigt eine aktive Alexa Media Player-Anmeldesitzung.",
           "package_path": "Relativer Pfad innerhalb des Konfigurationsverzeichnisses, in den die Alexa-Paket-YAML-Datei geschrieben wird (z.B. packages/alexa_devices.yaml)"
         }
       },
