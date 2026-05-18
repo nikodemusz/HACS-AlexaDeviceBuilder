@@ -115,9 +115,11 @@ class AlexaDeviceBuilderConfigFlow(
                     title="Alexa Device Builder (Amazon)",
                     data={
                         CONF_OPERATION_MODE: MODE_AMAZON_ACCOUNT,
-                        CONF_AMAZON_REGION: self._amazon_region,
                     },
-                    options={CONF_AMAZON_DEVICES: self._amazon_devices},
+                    options={
+                        CONF_AMAZON_REGION: self._amazon_region,
+                        CONF_AMAZON_DEVICES: self._amazon_devices,
+                    },
                 )
 
         amazon_region_options = [
