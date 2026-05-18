@@ -16,6 +16,7 @@ from .const import (
     CONF_LOCALE,
     CONF_OPERATION_MODE,
     CONF_PACKAGE_PATH,
+    DEFAULT_AMAZON_REGION,
     DEFAULT_PACKAGE_PATH,
     DOMAIN,
     MODE_HA_YAML,
@@ -35,7 +36,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     amazon_region = entry.options.get(
         CONF_AMAZON_REGION,
-        entry.data.get(CONF_AMAZON_REGION, "unknown"),
+        entry.data.get(CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION),
     )
     _LOGGER.info(
         "Operation mode '%s' configured for region '%s'; runtime actions are pending future phases",
