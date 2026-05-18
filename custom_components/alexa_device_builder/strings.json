@@ -15,12 +15,14 @@
       },
       "amazon": {
         "title": "Amazon Account Management",
-        "description": "Configure basic Amazon mode settings. Device-management runtime actions are introduced in later phases.",
+        "description": "Configure Amazon account-side device management independently from Home Assistant Alexa exposure.\n\n`amazon_devices` manages devices already present in Alexa. HA include/exclude filters are configured only in YAML mode.",
         "data": {
-          "amazon_region": "Amazon region"
+          "amazon_region": "Amazon region",
+          "amazon_devices": "Amazon devices (YAML)"
         },
         "data_description": {
-          "amazon_region": "Amazon marketplace/region to use later for account-based device management."
+          "amazon_region": "Amazon marketplace/region to use for account-based management.",
+          "amazon_devices": "YAML mapping for Alexa-side device management. Examples:\n\ndevice_id_1: New Name\n\ndevice_id_2:\n  remove: true\n\ndevice_id_3:\n  name: Kitchen Light\n  remove: false"
         }
       },
       "filter": {
@@ -57,7 +59,8 @@
     },
     "error": {
       "invalid_yaml": "Invalid YAML. Please check the format.",
-      "invalid_format": "The value must be a YAML mapping of entity_id to name (e.g. light.living_room: My Light)."
+      "invalid_format": "The value must be a YAML mapping of entity_id to name (e.g. light.living_room: My Light).",
+      "invalid_amazon_devices": "Invalid Amazon devices YAML. Use a mapping: device_id: New Name or device_id: {name: New Name, remove: true/false}."
     }
   },
   "options": {
@@ -92,18 +95,21 @@
       },
       "amazon": {
         "title": "Amazon Account Management",
-        "description": "Update Amazon mode settings.",
+        "description": "Update Amazon account-side management settings independently from HA exposure.",
         "data": {
-          "amazon_region": "Amazon region"
+          "amazon_region": "Amazon region",
+          "amazon_devices": "Amazon devices (YAML)"
         },
         "data_description": {
-          "amazon_region": "Amazon marketplace/region used for account mode."
+          "amazon_region": "Amazon marketplace/region used for account mode.",
+          "amazon_devices": "YAML mapping for Alexa-side device management. Remove entries by deleting them or set remove: true for explicit delete intent."
         }
       }
     },
     "error": {
       "invalid_yaml": "Invalid YAML. Please check the format.",
-      "invalid_format": "The value must be a YAML mapping of entity_id to name (e.g. light.living_room: My Light)."
+      "invalid_format": "The value must be a YAML mapping of entity_id to name (e.g. light.living_room: My Light).",
+      "invalid_amazon_devices": "Invalid Amazon devices YAML. Use a mapping: device_id: New Name or device_id: {name: New Name, remove: true/false}."
     }
   }
 }

@@ -15,12 +15,14 @@
       },
       "amazon": {
         "title": "Amazon-Kontoverwaltung",
-        "description": "Konfigurieren Sie grundlegende Einstellungen für den Amazon-Modus. Laufzeitaktionen zur Geräteverwaltung folgen in späteren Phasen.",
+        "description": "Konfigurieren Sie die geräteseitige Amazon-Kontoverwaltung unabhängig von der Home-Assistant-Alexa-Freigabe.\n\n`amazon_devices` verwaltet Geräte, die bereits in Alexa vorhanden sind. HA-Include/Exclude-Filter werden nur im YAML-Modus konfiguriert.",
         "data": {
-          "amazon_region": "Amazon-Region"
+          "amazon_region": "Amazon-Region",
+          "amazon_devices": "Amazon-Geräte (YAML)"
         },
         "data_description": {
-          "amazon_region": "Amazon-Marktplatz/Region für die spätere kontobasierte Geräteverwaltung."
+          "amazon_region": "Amazon-Marktplatz/Region für die kontobasierte Verwaltung.",
+          "amazon_devices": "YAML-Zuordnung für Alexa-seitige Geräteverwaltung. Beispiele:\n\ndevice_id_1: Neuer Name\n\ndevice_id_2:\n  remove: true\n\ndevice_id_3:\n  name: Küchenlicht\n  remove: false"
         }
       },
       "filter": {
@@ -57,7 +59,8 @@
     },
     "error": {
       "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",
-      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht)."
+      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht).",
+      "invalid_amazon_devices": "Ungültiges Amazon-Geräte-YAML. Verwenden Sie eine Zuordnung: device_id: Neuer Name oder device_id: {name: Neuer Name, remove: true/false}."
     }
   },
   "options": {
@@ -92,18 +95,21 @@
       },
       "amazon": {
         "title": "Amazon-Kontoverwaltung",
-        "description": "Aktualisieren Sie die Einstellungen des Amazon-Modus.",
+        "description": "Aktualisieren Sie die Amazon-Kontoverwaltung unabhängig von der HA-Freigabe.",
         "data": {
-          "amazon_region": "Amazon-Region"
+          "amazon_region": "Amazon-Region",
+          "amazon_devices": "Amazon-Geräte (YAML)"
         },
         "data_description": {
-          "amazon_region": "Amazon-Marktplatz/Region für den Konto-Modus."
+          "amazon_region": "Amazon-Marktplatz/Region für den Konto-Modus.",
+          "amazon_devices": "YAML-Zuordnung für Alexa-seitige Geräteverwaltung. Entfernen per Löschen des Eintrags oder mit remove: true."
         }
       }
     },
     "error": {
       "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",
-      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht)."
+      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht).",
+      "invalid_amazon_devices": "Ungültiges Amazon-Geräte-YAML. Verwenden Sie eine Zuordnung: device_id: Neuer Name oder device_id: {name: Neuer Name, remove: true/false}."
     }
   }
 }

@@ -14,6 +14,7 @@ from .const import (
     AMAZON_REGIONS,
     ALEXA_SUPPORTED_DOMAINS,
     ALEXA_SUPPORTED_LOCALES,
+    CONF_AMAZON_DEVICES,
     CONF_AMAZON_REGION,
     CONF_ENTITY_NAMES,
     CONF_LOCALE,
@@ -39,6 +40,7 @@ class AlexaDeviceBuilderConfigFlow(
         self._package_path: str = DEFAULT_PACKAGE_PATH
         self._operation_mode: str = MODE_HA_YAML
         self._amazon_region: str = DEFAULT_AMAZON_REGION
+        self._amazon_devices: dict[str, dict[str, Any]] = {}
         self._filter_options: dict[str, Any] = {}
 
     async def async_step_user(
@@ -97,18 +99,26 @@ class AlexaDeviceBuilderConfigFlow(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Handle Amazon mode setup."""
+        errors: dict[str, str] = {}
         if user_input is not None:
             self._amazon_region = user_input.get(
                 CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION
             )
-            return self.async_create_entry(
-                title="Alexa Device Builder (Amazon)",
-                data={
-                    CONF_OPERATION_MODE: MODE_AMAZON_ACCOUNT,
-                    CONF_AMAZON_REGION: self._amazon_region,
-                },
-                options={},
-            )
+            devices_text = (user_input.get(CONF_AMAZON_DEVICES) or "").strip()
+            try:
+                self._amazon_devices = _parse_amazon_devices_yaml(devices_text)
+            except ValueError:
+                errors[CONF_AMAZON_DEVICES] = "invalid_amazon_devices"
+
+            if not errors:
+                return self.async_create_entry(
+                    title="Alexa Device Builder (Amazon)",
+                    data={
+                        CONF_OPERATION_MODE: MODE_AMAZON_ACCOUNT,
+                        CONF_AMAZON_REGION: self._amazon_region,
+                    },
+                    options={CONF_AMAZON_DEVICES: self._amazon_devices},
+                )
 
         amazon_region_options = [
             selector.SelectOptionDict(value=region, label=region)
@@ -129,8 +139,17 @@ class AlexaDeviceBuilderConfigFlow(
                             custom_value=False,
                         )
                     ),
+                    vol.Optional(
+                        CONF_AMAZON_DEVICES, default=""
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            multiline=True,
+                            type=selector.TextSelectorType.TEXT,
+                        )
+                    ),
                 }
             ),
+            errors=errors,
         )
 
     async def async_step_filter(
@@ -274,6 +293,7 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
         """Initialize options flow."""
         self._filter_options: dict[str, Any] = {}
         self._amazon_region: str = DEFAULT_AMAZON_REGION
+        self._amazon_devices: dict[str, dict[str, Any]] = {}
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -353,14 +373,25 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Handle Amazon mode options."""
+        errors: dict[str, str] = {}
         if user_input is not None:
             self._amazon_region = user_input.get(
                 CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION
             )
-            return self.async_create_entry(
-                title="",
-                data={CONF_AMAZON_REGION: self._amazon_region},
-            )
+            devices_text = (user_input.get(CONF_AMAZON_DEVICES) or "").strip()
+            try:
+                self._amazon_devices = _parse_amazon_devices_yaml(devices_text)
+            except ValueError:
+                errors[CONF_AMAZON_DEVICES] = "invalid_amazon_devices"
+
+            if not errors:
+                return self.async_create_entry(
+                    title="",
+                    data={
+                        CONF_AMAZON_REGION: self._amazon_region,
+                        CONF_AMAZON_DEVICES: self._amazon_devices,
+                    },
+                )
 
         amazon_region_options = [
             selector.SelectOptionDict(value=region, label=region)
@@ -370,6 +401,8 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
             CONF_AMAZON_REGION,
             self.config_entry.data.get(CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION),
         )
+        current_devices = self.config_entry.options.get(CONF_AMAZON_DEVICES, {})
+        default_devices_yaml = _build_amazon_devices_yaml(current_devices)
         return self.async_show_form(
             step_id="amazon",
             data_schema=vol.Schema(
@@ -385,8 +418,18 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
                             custom_value=False,
                         )
                     ),
+                    vol.Optional(
+                        CONF_AMAZON_DEVICES,
+                        default=default_devices_yaml,
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            multiline=True,
+                            type=selector.TextSelectorType.TEXT,
+                        )
+                    ),
                 }
             ),
+            errors=errors,
         )
 
     async def async_step_entity_names(
@@ -550,3 +593,92 @@ def _expand_group_members(hass: Any, entity_ids: set[str]) -> None:
                 and member_entity_id not in seen_groups
             ):
                 pending_groups.append(member_entity_id)
+
+
+def _parse_amazon_devices_yaml(text: str) -> dict[str, dict[str, Any]]:
+    """Parse Amazon device-management YAML.
+
+    Supported input:
+    - device_id: New Name
+    - device_id:
+        name: New Name
+        remove: true
+    """
+    if not text:
+        return {}
+
+    parsed = yaml.safe_load(text)
+    if parsed is None:
+        return {}
+    if not isinstance(parsed, dict):
+        raise ValueError
+
+    result: dict[str, dict[str, Any]] = {}
+    for raw_device_id, raw_config in parsed.items():
+        device_id = str(raw_device_id).strip()
+        if not device_id:
+            raise ValueError
+
+        if isinstance(raw_config, str):
+            name = raw_config.strip()
+            if not name:
+                raise ValueError
+            result[device_id] = {"name": name, "remove": False}
+            continue
+
+        if not isinstance(raw_config, dict):
+            raise ValueError
+
+        remove = bool(raw_config.get("remove", False))
+        name_value = raw_config.get("name")
+        if name_value is None:
+            name = ""
+        else:
+            name = str(name_value).strip()
+
+        if not remove and not name:
+            raise ValueError
+
+        normalized: dict[str, Any] = {"remove": remove}
+        if name:
+            normalized["name"] = name
+        result[device_id] = normalized
+
+    return result
+
+
+def _build_amazon_devices_yaml(devices: dict[str, Any]) -> str:
+    """Build Amazon devices YAML from normalized mapping."""
+    if not isinstance(devices, dict) or not devices:
+        return ""
+
+    normalized_for_yaml: dict[str, Any] = {}
+    for raw_device_id, raw_config in sorted(devices.items()):
+        device_id = str(raw_device_id).strip()
+        if not device_id:
+            continue
+
+        if not isinstance(raw_config, dict):
+            continue
+
+        remove = bool(raw_config.get("remove", False))
+        name_value = raw_config.get("name")
+        name = str(name_value).strip() if name_value is not None else ""
+
+        if remove:
+            entry: dict[str, Any] = {"remove": True}
+            if name:
+                entry["name"] = name
+            normalized_for_yaml[device_id] = entry
+        elif name:
+            normalized_for_yaml[device_id] = name
+
+    if not normalized_for_yaml:
+        return ""
+
+    return yaml.dump(
+        normalized_for_yaml,
+        allow_unicode=True,
+        default_flow_style=False,
+        sort_keys=True,
+    ).strip()

@@ -62,11 +62,11 @@ If the `packages/` directory does not exist in your config directory, the integr
 2. Search for **Alexa Device Builder**
 3. Choose the **Operation mode**:
    - **Home Assistant YAML package** (active)
-   - **Amazon account management (Phase 2 setup)** (basic setup active, runtime actions pending)
+   - **Amazon account management (Phase 2 setup)** (separate device-management config)
 4. If you selected YAML mode, set the package file path (default: `packages/alexa_devices.yaml`)
 5. Complete setup
 
-### Step 2 – Configure device filters
+### Step 2A – Configure Home Assistant device exposure (YAML mode)
 
 1. On the integration card, click **Configure**
 2. Select entities and/or domains using the four filter lists:
@@ -79,6 +79,27 @@ If the `packages/` directory does not exist in your config directory, the integr
 > **Tip:** Leave all lists empty to expose every entity to Alexa.
 
 > **Note:** After changing the filter, you need to **restart Home Assistant** for the new configuration to take effect. The `alexa` integration is configured via YAML and does not support hot-reload at runtime.
+
+### Step 2B – Configure Amazon-side device management (Amazon mode)
+
+In Amazon mode, device management is configured independently from HA entity exposure:
+
+- `amazon_region` selects the Amazon marketplace.
+- `amazon_devices` is a YAML mapping for devices that are already available in Alexa and should be edited or marked for removal.
+
+Example:
+
+```yaml
+device_id_1: New Name
+device_id_2:
+  remove: true
+device_id_3:
+  name: Kitchen Light
+  remove: false
+```
+
+Removing a mapping entry stops managing that device in this integration.  
+Setting `remove: true` stores explicit remove intent for that Alexa device.
 
 ---
 

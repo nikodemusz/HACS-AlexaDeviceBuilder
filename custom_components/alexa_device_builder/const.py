@@ -6,6 +6,7 @@ CONF_PACKAGE_PATH = "package_path"
 DEFAULT_PACKAGE_PATH = "packages/alexa_devices.yaml"
 CONF_OPERATION_MODE = "operation_mode"
 CONF_AMAZON_REGION = "amazon_region"
+CONF_AMAZON_DEVICES = "amazon_devices"
 
 MODE_HA_YAML = "ha_yaml"
 MODE_AMAZON_ACCOUNT = "amazon_account"

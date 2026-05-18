@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
+    CONF_AMAZON_DEVICES,
     CONF_AMAZON_REGION,
     CONF_ENTITY_NAMES,
     CONF_LOCALE,
@@ -38,10 +39,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         CONF_AMAZON_REGION,
         entry.data.get(CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION),
     )
+    amazon_devices = entry.options.get(CONF_AMAZON_DEVICES, {})
+    manage_count = 0
+    remove_count = 0
+    if isinstance(amazon_devices, dict):
+        for raw_config in amazon_devices.values():
+            if isinstance(raw_config, dict) and raw_config.get("remove"):
+                remove_count += 1
+            else:
+                manage_count += 1
     _LOGGER.info(
-        "Operation mode '%s' configured for region '%s'; runtime actions are pending future phases",
-        operation_mode,
+        "Amazon account management configured independently from HA exposure: region='%s', edit=%d, remove=%d; runtime sync is pending future phases",
         amazon_region,
+        manage_count,
+        remove_count,
+    )
+    _LOGGER.debug(
+        "Operation mode '%s' configured for non-YAML execution path",
+        operation_mode,
     )
     return True
 
@@ -69,7 +84,10 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
         await _write_alexa_package(hass, entry)
         return
 
-    _LOGGER.debug("Options updated for non-YAML mode '%s'", operation_mode)
+    _LOGGER.debug(
+        "Options updated for Amazon management mode '%s' without affecting HA YAML exposure",
+        operation_mode,
+    )
 
 
 async def _write_alexa_package(hass: HomeAssistant, entry: ConfigEntry) -> None:
