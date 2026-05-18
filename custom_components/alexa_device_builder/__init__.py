@@ -49,7 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             else:
                 manage_count += 1
     _LOGGER.info(
-        "Amazon account management configured independently from HA exposure: region='%s', edit=%d, remove=%d; runtime sync is pending future phases",
+        "Amazon account management configured independently from HA exposure: region=%s, edit=%d, remove=%d; runtime sync is pending future phases",
         amazon_region,
         manage_count,
         remove_count,
