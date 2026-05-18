@@ -9,13 +9,13 @@
           "package_path": "Package file path"
         },
         "data_description": {
-          "operation_mode": "Select how Alexa Device Builder should work. Amazon account mode executes device rename/remove sync independently from HA exposure and requires an active Alexa Media Player login session.",
+          "operation_mode": "Select how Alexa Device Builder should work. Amazon account mode executes device rename/remove sync independently from Home Assistant exposure and requires an active Alexa Media Player login session.",
           "package_path": "Relative path within the config directory where the Alexa package YAML file will be written (e.g. packages/alexa_devices.yaml)"
         }
       },
       "amazon": {
         "title": "Amazon Account Management",
-        "description": "Configure Amazon account-side device management independently from Home Assistant Alexa exposure.\n\n`amazon_devices` manages devices already present in Alexa. HA include/exclude filters are configured only in YAML mode.",
+        "description": "Configure Amazon account-side device management independently from Home Assistant Alexa exposure.\n\n`amazon_devices` manages devices already present in Alexa. Home Assistant include/exclude filters are configured only in YAML mode.",
         "data": {
           "amazon_region": "Amazon region",
           "amazon_devices": "Amazon devices (YAML)"
@@ -95,7 +95,7 @@
       },
       "amazon": {
         "title": "Amazon Account Management",
-        "description": "Update Amazon account-side management settings independently from HA exposure.",
+        "description": "Update Amazon account-side management settings independently from Home Assistant exposure.",
         "data": {
           "amazon_region": "Amazon region",
           "amazon_devices": "Amazon devices (YAML)"

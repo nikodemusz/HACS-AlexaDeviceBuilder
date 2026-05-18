@@ -222,6 +222,8 @@ async def _sync_amazon_devices(
     try:
         network_details = await alexa_api.get_network_details(login_obj)
     except Exception as err:  # pylint: disable=broad-except
+        # alexapy may raise varying transport/auth exceptions depending on
+        # runtime state (timeouts, login invalidation, connection errors).
         _LOGGER.warning("Amazon sync failed (%s): could not load devices: %s", reason, err)
         return
 

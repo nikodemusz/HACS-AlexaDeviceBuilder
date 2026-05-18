@@ -61,7 +61,7 @@ If the `packages/` directory does not exist in your config directory, the integr
 1. Go to **Settings → Devices & Services → Add Integration**
 2. Search for **Alexa Device Builder**
 3. Choose the **Operation mode**:
-    - **Home Assistant YAML package** (active)
+   - **Home Assistant YAML package**
    - **Amazon account management** (separate device-management sync)
 4. If you selected YAML mode, set the package file path (default: `packages/alexa_devices.yaml`)
 5. Complete setup
