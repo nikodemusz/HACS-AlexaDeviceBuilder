@@ -356,7 +356,7 @@ def _is_usable_login(login_obj: Any) -> bool:
 def _get_alexa_api_class() -> Any | None:
     """Import alexapy lazily to keep dependency optional."""
     try:
-        from alexapy import AlexaAPI  # type: ignore
+        from alexapy import AlexaAPI  # type: ignore[import-untyped]
     except ImportError:
         return None
     return AlexaAPI
@@ -379,6 +379,8 @@ async def _rename_amazon_device(
 
     for endpoint in endpoint_candidates:
         for payload in payload_candidates:
+            # alexapy has no public rename/remove helper for smart-home appliances.
+            # We intentionally use its internal request helper for private endpoints.
             response = await alexa_api._static_request(  # pylint: disable=protected-access
                 "put",
                 login_obj,
@@ -406,6 +408,8 @@ async def _delete_amazon_device(alexa_api: Any, login_obj: Any, appliance_id: st
     ]
 
     for endpoint in endpoint_candidates:
+        # alexapy has no public rename/remove helper for smart-home appliances.
+        # We intentionally use its internal request helper for private endpoints.
         response = await alexa_api._static_request(  # pylint: disable=protected-access
             "delete",
             login_obj,
