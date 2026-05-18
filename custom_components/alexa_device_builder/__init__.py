@@ -24,6 +24,8 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+_ALEXA_MEDIA_DOMAIN = "alexa_media"
+_ALEXA_MEDIA_ACCOUNTS_KEY = "accounts"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -49,11 +51,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             else:
                 manage_count += 1
     _LOGGER.info(
-        "Amazon account management configured independently from HA exposure: region=%s, edit=%d, remove=%d; runtime sync is pending future phases",
+        "Amazon account management configured independently from HA exposure: region=%s, edit=%d, remove=%d",
         amazon_region,
         manage_count,
         remove_count,
     )
+    await _sync_amazon_devices(hass, entry, reason="setup")
     _LOGGER.debug(
         "Operation mode '%s' configured for non-YAML execution path",
         operation_mode,
@@ -88,6 +91,7 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
         "Options updated for Amazon management mode '%s' without affecting HA YAML exposure",
         operation_mode,
     )
+    await _sync_amazon_devices(hass, entry, reason="options_update")
 
 
 async def _write_alexa_package(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -181,3 +185,245 @@ def _remove_yaml(full_path: str) -> None:
         _LOGGER.warning(
             "Could not remove Alexa package file %s: %s", full_path, err
         )
+
+
+async def _sync_amazon_devices(
+    hass: HomeAssistant, entry: ConfigEntry, reason: str
+) -> None:
+    """Sync configured Amazon Alexa device actions (rename/delete)."""
+    amazon_region = str(
+        entry.options.get(
+            CONF_AMAZON_REGION,
+            entry.data.get(CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION),
+        )
+    ).strip()
+    amazon_devices = entry.options.get(CONF_AMAZON_DEVICES, {})
+    if not isinstance(amazon_devices, dict) or not amazon_devices:
+        _LOGGER.debug("No Amazon devices configured for sync (%s)", reason)
+        return
+
+    alexa_api = _get_alexa_api_class()
+    if alexa_api is None:
+        _LOGGER.warning(
+            "Amazon sync skipped (%s): alexapy is unavailable. Install/configure Alexa Media Player first.",
+            reason,
+        )
+        return
+
+    login_obj = _resolve_alexa_media_login(hass, amazon_region)
+    if login_obj is None:
+        _LOGGER.warning(
+            "Amazon sync skipped (%s): no active alexa_media login found for region '%s'.",
+            reason,
+            amazon_region,
+        )
+        return
+
+    try:
+        network_details = await alexa_api.get_network_details(login_obj)
+    except Exception as err:  # pylint: disable=broad-except
+        _LOGGER.warning("Amazon sync failed (%s): could not load devices: %s", reason, err)
+        return
+
+    if not isinstance(network_details, list):
+        _LOGGER.warning("Amazon sync failed (%s): no Alexa appliance data available", reason)
+        return
+
+    by_appliance_id: dict[str, dict[str, str]] = {}
+    by_entity_id: dict[str, str] = {}
+    for raw_device in network_details:
+        if not isinstance(raw_device, dict):
+            continue
+        appliance_id = str(raw_device.get("applianceId") or "").strip()
+        entity_id = str(raw_device.get("entityId") or "").strip()
+        friendly_name = str(raw_device.get("friendlyName") or "").strip()
+        if appliance_id:
+            by_appliance_id[appliance_id] = {
+                "entity_id": entity_id,
+                "friendly_name": friendly_name,
+            }
+        if entity_id and appliance_id:
+            by_entity_id[entity_id] = appliance_id
+
+    renamed = 0
+    removed = 0
+    skipped = 0
+    failed = 0
+
+    for raw_device_id, raw_config in sorted(amazon_devices.items()):
+        configured_id = str(raw_device_id).strip()
+        if not configured_id:
+            skipped += 1
+            continue
+        if not isinstance(raw_config, dict):
+            _LOGGER.warning("Amazon sync: invalid config for '%s' (expected mapping)", configured_id)
+            failed += 1
+            continue
+
+        appliance_id = configured_id
+        if appliance_id not in by_appliance_id:
+            appliance_id = by_entity_id.get(configured_id, "")
+
+        if not appliance_id:
+            _LOGGER.warning(
+                "Amazon sync: configured id '%s' not found in Alexa account, skipping",
+                configured_id,
+            )
+            skipped += 1
+            continue
+
+        remove = bool(raw_config.get("remove", False))
+        requested_name = str(raw_config.get("name") or "").strip()
+
+        if remove:
+            if await _delete_amazon_device(alexa_api, login_obj, appliance_id):
+                removed += 1
+            else:
+                failed += 1
+            continue
+
+        if not requested_name:
+            skipped += 1
+            continue
+
+        current_name = by_appliance_id.get(appliance_id, {}).get("friendly_name", "")
+        if current_name == requested_name:
+            skipped += 1
+            continue
+
+        if await _rename_amazon_device(alexa_api, login_obj, appliance_id, requested_name):
+            renamed += 1
+        else:
+            failed += 1
+
+    _LOGGER.info(
+        "Amazon sync completed (%s): renamed=%d removed=%d skipped=%d failed=%d",
+        reason,
+        renamed,
+        removed,
+        skipped,
+        failed,
+    )
+
+
+def _resolve_alexa_media_login(hass: HomeAssistant, amazon_region: str) -> Any | None:
+    """Resolve an active alexa_media login object for the requested region."""
+    accounts = (
+        hass.data.get(_ALEXA_MEDIA_DOMAIN, {}).get(_ALEXA_MEDIA_ACCOUNTS_KEY, {})
+    )
+    if not isinstance(accounts, dict) or not accounts:
+        return None
+
+    normalized_region = amazon_region.lower()
+    fallback_login: Any | None = None
+
+    for account in accounts.values():
+        if not isinstance(account, dict):
+            continue
+        login_obj = account.get("login_obj")
+        if not _is_usable_login(login_obj):
+            continue
+
+        login_region = str(getattr(login_obj, "url", "") or "").lower()
+        if login_region == normalized_region:
+            return login_obj
+
+        if fallback_login is None:
+            fallback_login = login_obj
+
+    return fallback_login
+
+
+def _is_usable_login(login_obj: Any) -> bool:
+    """Return True if the login object looks alive enough for requests."""
+    if login_obj is None:
+        return False
+
+    if bool(getattr(login_obj, "close_requested", False)):
+        return False
+
+    session = getattr(login_obj, "session", None)
+    if session is None or bool(getattr(session, "closed", False)):
+        return False
+
+    status = getattr(login_obj, "status", None)
+    if isinstance(status, dict) and status.get("login_successful") is False:
+        return False
+
+    return True
+
+
+def _get_alexa_api_class() -> Any | None:
+    """Import alexapy lazily to keep dependency optional."""
+    try:
+        from alexapy import AlexaAPI  # type: ignore
+    except ImportError:
+        return None
+    return AlexaAPI
+
+
+async def _rename_amazon_device(
+    alexa_api: Any, login_obj: Any, appliance_id: str, new_name: str
+) -> bool:
+    """Try renaming an Alexa appliance using known private API variants."""
+    endpoint_candidates = [
+        f"/api/phoenix/appliances/{appliance_id}",
+        f"/api/phoenix/device/{appliance_id}",
+    ]
+    payload_candidates = [
+        {"applianceId": appliance_id, "friendlyName": new_name},
+        {"applianceId": appliance_id, "accountName": new_name},
+        {"friendlyName": new_name},
+        {"accountName": new_name},
+    ]
+
+    for endpoint in endpoint_candidates:
+        for payload in payload_candidates:
+            response = await alexa_api._static_request(  # pylint: disable=protected-access
+                "put",
+                login_obj,
+                endpoint,
+                data=payload,
+            )
+            if _is_success_response(response):
+                _LOGGER.debug(
+                    "Amazon sync: renamed appliance '%s' to '%s' via %s",
+                    appliance_id,
+                    new_name,
+                    endpoint,
+                )
+                return True
+
+    _LOGGER.warning("Amazon sync: could not rename appliance '%s' to '%s'", appliance_id, new_name)
+    return False
+
+
+async def _delete_amazon_device(alexa_api: Any, login_obj: Any, appliance_id: str) -> bool:
+    """Try deleting an Alexa appliance using known private API variants."""
+    endpoint_candidates = [
+        f"/api/phoenix/appliances/{appliance_id}",
+        f"/api/phoenix/device/{appliance_id}",
+    ]
+
+    for endpoint in endpoint_candidates:
+        response = await alexa_api._static_request(  # pylint: disable=protected-access
+            "delete",
+            login_obj,
+            endpoint,
+        )
+        if _is_success_response(response):
+            _LOGGER.debug(
+                "Amazon sync: removed appliance '%s' via %s",
+                appliance_id,
+                endpoint,
+            )
+            return True
+
+    _LOGGER.warning("Amazon sync: could not remove appliance '%s'", appliance_id)
+    return False
+
+
+def _is_success_response(response: Any) -> bool:
+    """Return True for 2xx responses."""
+    status = getattr(response, "status", None)
+    return isinstance(status, int) and 200 <= status < 300

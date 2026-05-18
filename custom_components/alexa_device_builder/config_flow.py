@@ -65,7 +65,7 @@ class AlexaDeviceBuilderConfigFlow(
             ),
             selector.SelectOptionDict(
                 value=MODE_AMAZON_ACCOUNT,
-                label="Amazon account management (Phase 2 setup)",
+                label="Amazon account management",
             ),
         ]
 

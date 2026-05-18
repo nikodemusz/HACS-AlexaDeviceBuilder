@@ -61,8 +61,8 @@ If the `packages/` directory does not exist in your config directory, the integr
 1. Go to **Settings → Devices & Services → Add Integration**
 2. Search for **Alexa Device Builder**
 3. Choose the **Operation mode**:
-   - **Home Assistant YAML package** (active)
-   - **Amazon account management (Phase 2 setup)** (separate device-management config)
+    - **Home Assistant YAML package** (active)
+   - **Amazon account management** (separate device-management sync)
 4. If you selected YAML mode, set the package file path (default: `packages/alexa_devices.yaml`)
 5. Complete setup
 
@@ -86,6 +86,7 @@ In Amazon mode, device management is configured independently from HA entity exp
 
 - `amazon_region` selects the Amazon marketplace.
 - `amazon_devices` is a YAML mapping for devices that are already available in Alexa and should be edited or marked for removal.
+- Runtime sync requires an active **Alexa Media Player** account session in Home Assistant.
 
 Example:
 
@@ -99,7 +100,11 @@ device_id_3:
 ```
 
 Removing a mapping entry stops managing that device in this integration.  
-Setting `remove: true` stores explicit remove intent for that Alexa device.
+Setting `remove: true` will try to remove that Alexa device during sync.
+
+Sync runs when:
+- the integration starts
+- Amazon mode options are saved
 
 ---
 
