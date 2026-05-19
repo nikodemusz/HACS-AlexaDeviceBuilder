@@ -64,7 +64,7 @@ class AlexaDeviceListView(HomeAssistantView):
             network_details = await alexa_api.get_network_details(login_obj)
         except Exception as err:  # pylint: disable=broad-except
             _LOGGER.warning("Panel API: could not load Alexa devices: %s", err)
-            return self.json({"error": str(err), "devices": []})
+            return self.json({"error": "fetch_failed", "devices": []})
 
         devices: list[dict[str, Any]] = []
         if isinstance(network_details, list):
@@ -107,7 +107,10 @@ class AlexaDeviceApplyView(HomeAssistantView):
         try:
             body = await request.json()
         except Exception:  # pylint: disable=broad-except
-            return self.json_message("Invalid JSON body", status_code=400)
+            return self.json_message(
+                "Invalid JSON body. Expected: {\"actions\": [{\"applianceId\": \"...\", \"action\": \"rename|delete\", \"newName\": \"...\"}]}",
+                status_code=400,
+            )
 
         actions = body.get("actions") if isinstance(body, dict) else None
         if not isinstance(actions, list):

@@ -560,8 +560,9 @@ class AlexaDevicePanel extends HTMLElement {
 
   _render() {
     // Preserve focused element id across re-renders
-    const focusedId = this.shadowRoot.activeElement?.id;
-    const selStart = this.shadowRoot.activeElement?.selectionStart;
+    const root = this.shadowRoot;
+    const focusedId = root?.activeElement?.id;
+    const selStart = root?.activeElement?.selectionStart;
 
     const s = this._s;
     const filtered = this._getFiltered();
@@ -579,6 +580,8 @@ class AlexaDevicePanel extends HTMLElement {
         "No active Alexa Media Player session found. Please log in via the Alexa Media Player integration first.",
       no_amazon_entry:
         "No <em>Amazon account management</em> entry is configured. Add one via Settings → Integrations.",
+      fetch_failed:
+        "Could not load device list from Amazon. Check the HA logs for details.",
     };
 
     // ── Device rows

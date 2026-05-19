@@ -207,6 +207,12 @@ async def _register_panel(hass: HomeAssistant) -> None:
     )
 
     www_path = str(Path(__file__).parent / "www")
+    if not Path(www_path).is_dir():
+        _LOGGER.error(
+            "Alexa Device Builder: www directory not found at %s – panel will not be registered",
+            www_path,
+        )
+        return
 
     # Serve the panel JS as a static path.  Handle both the legacy
     # register_static_path (HA < 2024.6) and the new async API.
