@@ -3,12 +3,26 @@
     "step": {
       "user": {
         "title": "Alexa Device Builder",
-        "description": "Legen Sie fest, wohin die Alexa-Filter-Paketdatei geschrieben wird. Der Pfad ist relativ zum Home Assistant-Konfigurationsverzeichnis.\n\nStellen Sie sicher, dass Ihre `configuration.yaml` das Pakete-Verzeichnis einbindet:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
+        "description": "Wählen Sie, wie Alexa Device Builder arbeiten soll.\n\nFür den YAML-Paketmodus legen Sie fest, wohin die Alexa-Filter-Paketdatei geschrieben wird. Der Pfad ist relativ zum Home Assistant-Konfigurationsverzeichnis.\n\nStellen Sie sicher, dass Ihre `configuration.yaml` das Pakete-Verzeichnis einbindet:\n```yaml\nhomeassistant:\n  packages: !include_dir_named packages\n```",
         "data": {
+          "operation_mode": "Betriebsmodus",
           "package_path": "Paketdatei-Pfad"
         },
         "data_description": {
+          "operation_mode": "Wählen Sie, wie Alexa Device Builder arbeiten soll. Der Amazon-Konto-Modus führt Geräte-Umbenennen/Löschen unabhängig von der Home Assistant-Freigabe aus und benötigt eine aktive Alexa Media Player-Anmeldesitzung.",
           "package_path": "Relativer Pfad innerhalb des Konfigurationsverzeichnisses, in den die Alexa-Paket-YAML-Datei geschrieben wird (z.B. packages/alexa_devices.yaml)"
+        }
+      },
+      "amazon": {
+        "title": "Amazon-Kontoverwaltung",
+        "description": "Konfigurieren Sie die geräteseitige Amazon-Kontoverwaltung unabhängig von der Home-Assistant-Alexa-Freigabe.\n\n`amazon_devices` verwaltet Geräte, die bereits in Alexa vorhanden sind. Home Assistant Include/Exclude-Filter werden nur im YAML-Modus konfiguriert.",
+        "data": {
+          "amazon_region": "Amazon-Region",
+          "amazon_devices": "Amazon-Geräte (YAML)"
+        },
+        "data_description": {
+          "amazon_region": "Amazon-Marktplatz/Region für die kontobasierte Verwaltung.",
+          "amazon_devices": "YAML-Zuordnung für Alexa-seitige Geräteverwaltung. Beispiele:\n\ndevice_id_1: Neuer Name\n\ndevice_id_2:\n  remove: true\n\ndevice_id_3:\n  name: Küchenlicht\n  remove: false"
         }
       },
       "filter": {
@@ -45,7 +59,8 @@
     },
     "error": {
       "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",
-      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht)."
+      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht).",
+      "invalid_amazon_devices": "Ungültiges Amazon-Geräte-YAML. Verwenden Sie eine Zuordnung: device_id: Neuer Name oder device_id: {name: Neuer Name, remove: true/false}."
     }
   },
   "options": {
@@ -77,11 +92,24 @@
         "data_description": {
           "entity_names": "YAML-Zuordnung von Entitäts-ID zu dem Namen, den Alexa verwenden soll"
         }
+      },
+      "amazon": {
+        "title": "Amazon-Kontoverwaltung",
+        "description": "Aktualisieren Sie die Amazon-Kontoverwaltung unabhängig von der Home Assistant-Freigabe.",
+        "data": {
+          "amazon_region": "Amazon-Region",
+          "amazon_devices": "Amazon-Geräte (YAML)"
+        },
+        "data_description": {
+          "amazon_region": "Amazon-Marktplatz/Region für den Konto-Modus.",
+          "amazon_devices": "YAML-Zuordnung für Alexa-seitige Geräteverwaltung. Entfernen per Löschen des Eintrags oder mit remove: true."
+        }
       }
     },
     "error": {
       "invalid_yaml": "Ungültiges YAML. Bitte überprüfen Sie das Format.",
-      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht)."
+      "invalid_format": "Der Wert muss eine YAML-Zuordnung von Entitäts-ID zu Name sein (z.B. light.wohnzimmer: Wohnzimmerlicht).",
+      "invalid_amazon_devices": "Ungültiges Amazon-Geräte-YAML. Verwenden Sie eine Zuordnung: device_id: Neuer Name oder device_id: {name: Neuer Name, remove: true/false}."
     }
   }
 }

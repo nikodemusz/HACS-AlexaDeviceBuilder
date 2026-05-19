@@ -11,13 +11,20 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    AMAZON_REGIONS,
     ALEXA_SUPPORTED_DOMAINS,
     ALEXA_SUPPORTED_LOCALES,
+    CONF_AMAZON_DEVICES,
+    CONF_AMAZON_REGION,
     CONF_ENTITY_NAMES,
     CONF_LOCALE,
+    CONF_OPERATION_MODE,
     CONF_PACKAGE_PATH,
+    DEFAULT_AMAZON_REGION,
     DEFAULT_PACKAGE_PATH,
     DOMAIN,
+    MODE_AMAZON_ACCOUNT,
+    MODE_HA_YAML,
 )
 
 
@@ -31,6 +38,9 @@ class AlexaDeviceBuilderConfigFlow(
     def __init__(self) -> None:
         """Initialize config flow."""
         self._package_path: str = DEFAULT_PACKAGE_PATH
+        self._operation_mode: str = MODE_HA_YAML
+        self._amazon_region: str = DEFAULT_AMAZON_REGION
+        self._amazon_devices: dict[str, dict[str, Any]] = {}
         self._filter_options: dict[str, Any] = {}
 
     async def async_step_user(
@@ -44,12 +54,36 @@ class AlexaDeviceBuilderConfigFlow(
             self._package_path = user_input.get(
                 CONF_PACKAGE_PATH, DEFAULT_PACKAGE_PATH
             )
+            self._operation_mode = user_input.get(CONF_OPERATION_MODE, MODE_HA_YAML)
+            if self._operation_mode == MODE_AMAZON_ACCOUNT:
+                return await self.async_step_amazon()
             return await self.async_step_filter()
+
+        operation_mode_options = [
+            selector.SelectOptionDict(
+                value=MODE_HA_YAML, label="Home Assistant YAML package"
+            ),
+            selector.SelectOptionDict(
+                value=MODE_AMAZON_ACCOUNT,
+                label="Amazon account management",
+            ),
+        ]
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(
+                        CONF_OPERATION_MODE,
+                        default=MODE_HA_YAML,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=operation_mode_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
+                        )
+                    ),
                     vol.Optional(
                         CONF_PACKAGE_PATH, default=DEFAULT_PACKAGE_PATH
                     ): selector.TextSelector(
@@ -59,6 +93,65 @@ class AlexaDeviceBuilderConfigFlow(
                     ),
                 }
             ),
+        )
+
+    async def async_step_amazon(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle Amazon mode setup."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            self._amazon_region = user_input.get(
+                CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION
+            )
+            devices_text = (user_input.get(CONF_AMAZON_DEVICES) or "").strip()
+            try:
+                self._amazon_devices = _parse_amazon_devices_yaml(devices_text)
+            except ValueError:
+                errors[CONF_AMAZON_DEVICES] = "invalid_amazon_devices"
+
+            if not errors:
+                return self.async_create_entry(
+                    title="Alexa Device Builder (Amazon)",
+                    data={
+                        CONF_OPERATION_MODE: MODE_AMAZON_ACCOUNT,
+                    },
+                    options={
+                        CONF_AMAZON_REGION: self._amazon_region,
+                        CONF_AMAZON_DEVICES: self._amazon_devices,
+                    },
+                )
+
+        amazon_region_options = [
+            selector.SelectOptionDict(value=region, label=region)
+            for region in AMAZON_REGIONS
+        ]
+        return self.async_show_form(
+            step_id="amazon",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_AMAZON_REGION,
+                        default=DEFAULT_AMAZON_REGION,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=amazon_region_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_AMAZON_DEVICES, default=""
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            multiline=True,
+                            type=selector.TextSelectorType.TEXT,
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
         )
 
     async def async_step_filter(
@@ -153,7 +246,10 @@ class AlexaDeviceBuilderConfigFlow(
                     options[CONF_ENTITY_NAMES] = entity_names
                 return self.async_create_entry(
                     title="Alexa Device Builder",
-                    data={CONF_PACKAGE_PATH: self._package_path},
+                    data={
+                        CONF_OPERATION_MODE: self._operation_mode,
+                        CONF_PACKAGE_PATH: self._package_path,
+                    },
                     options=options,
                 )
 
@@ -198,11 +294,16 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
     def __init__(self) -> None:
         """Initialize options flow."""
         self._filter_options: dict[str, Any] = {}
+        self._amazon_region: str = DEFAULT_AMAZON_REGION
+        self._amazon_devices: dict[str, dict[str, Any]] = {}
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Handle options."""
+        if self.config_entry.data.get(CONF_OPERATION_MODE) == MODE_AMAZON_ACCOUNT:
+            return await self.async_step_amazon(user_input)
+
         if user_input is not None:
             self._filter_options = user_input
             return await self.async_step_entity_names()
@@ -268,6 +369,69 @@ class AlexaDeviceBuilderOptionsFlow(config_entries.OptionsFlow):
                     ),
                 }
             ),
+        )
+
+    async def async_step_amazon(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle Amazon mode options."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            self._amazon_region = user_input.get(
+                CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION
+            )
+            devices_text = (user_input.get(CONF_AMAZON_DEVICES) or "").strip()
+            try:
+                self._amazon_devices = _parse_amazon_devices_yaml(devices_text)
+            except ValueError:
+                errors[CONF_AMAZON_DEVICES] = "invalid_amazon_devices"
+
+            if not errors:
+                return self.async_create_entry(
+                    title="",
+                    data={
+                        CONF_AMAZON_REGION: self._amazon_region,
+                        CONF_AMAZON_DEVICES: self._amazon_devices,
+                    },
+                )
+
+        amazon_region_options = [
+            selector.SelectOptionDict(value=region, label=region)
+            for region in AMAZON_REGIONS
+        ]
+        current_region = self.config_entry.options.get(
+            CONF_AMAZON_REGION,
+            self.config_entry.data.get(CONF_AMAZON_REGION, DEFAULT_AMAZON_REGION),
+        )
+        current_devices = self.config_entry.options.get(CONF_AMAZON_DEVICES, {})
+        default_devices_yaml = _build_amazon_devices_yaml(current_devices)
+        return self.async_show_form(
+            step_id="amazon",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_AMAZON_REGION,
+                        default=current_region,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=amazon_region_options,
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=False,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_AMAZON_DEVICES,
+                        default=default_devices_yaml,
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            multiline=True,
+                            type=selector.TextSelectorType.TEXT,
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
         )
 
     async def async_step_entity_names(
@@ -431,3 +595,92 @@ def _expand_group_members(hass: Any, entity_ids: set[str]) -> None:
                 and member_entity_id not in seen_groups
             ):
                 pending_groups.append(member_entity_id)
+
+
+def _parse_amazon_devices_yaml(text: str) -> dict[str, dict[str, Any]]:
+    """Parse Amazon device-management YAML.
+
+    Supported input:
+    - device_id: New Name
+    - device_id:
+        name: New Name
+        remove: true
+    """
+    if not text:
+        return {}
+
+    parsed = yaml.safe_load(text)
+    if parsed is None:
+        return {}
+    if not isinstance(parsed, dict):
+        raise ValueError
+
+    result: dict[str, dict[str, Any]] = {}
+    for raw_device_id, raw_config in parsed.items():
+        device_id = str(raw_device_id).strip()
+        if not device_id:
+            raise ValueError
+
+        if isinstance(raw_config, str):
+            name = raw_config.strip()
+            if not name:
+                raise ValueError
+            result[device_id] = {"name": name, "remove": False}
+            continue
+
+        if not isinstance(raw_config, dict):
+            raise ValueError
+
+        remove = bool(raw_config.get("remove", False))
+        name_value = raw_config.get("name")
+        if name_value is None:
+            name = ""
+        else:
+            name = str(name_value).strip()
+
+        if not remove and not name:
+            raise ValueError
+
+        normalized: dict[str, Any] = {"remove": remove}
+        if name:
+            normalized["name"] = name
+        result[device_id] = normalized
+
+    return result
+
+
+def _build_amazon_devices_yaml(devices: dict[str, Any]) -> str:
+    """Build Amazon devices YAML from normalized mapping."""
+    if not isinstance(devices, dict) or not devices:
+        return ""
+
+    normalized_for_yaml: dict[str, Any] = {}
+    for raw_device_id, raw_config in sorted(devices.items()):
+        device_id = str(raw_device_id).strip()
+        if not device_id:
+            continue
+
+        if not isinstance(raw_config, dict):
+            continue
+
+        remove = bool(raw_config.get("remove", False))
+        name_value = raw_config.get("name")
+        name = str(name_value).strip() if name_value is not None else ""
+
+        if remove:
+            entry: dict[str, Any] = {"remove": True}
+            if name:
+                entry["name"] = name
+            normalized_for_yaml[device_id] = entry
+        elif name:
+            normalized_for_yaml[device_id] = name
+
+    if not normalized_for_yaml:
+        return ""
+
+    return yaml.dump(
+        normalized_for_yaml,
+        allow_unicode=True,
+        default_flow_style=False,
+        sort_keys=True,
+    ).strip()

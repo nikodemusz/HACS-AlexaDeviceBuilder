@@ -60,9 +60,13 @@ If the `packages/` directory does not exist in your config directory, the integr
 
 1. Go to **Settings → Devices & Services → Add Integration**
 2. Search for **Alexa Device Builder**
-3. Set the package file path (default: `packages/alexa_devices.yaml`) and click **Submit**
+3. Choose the **Operation mode**:
+   - **Home Assistant YAML package**
+   - **Amazon account management** (separate device-management sync)
+4. If you selected YAML mode, set the package file path (default: `packages/alexa_devices.yaml`)
+5. Complete setup
 
-### Step 2 – Configure device filters
+### Step 2A – Configure Home Assistant device exposure (YAML mode)
 
 1. On the integration card, click **Configure**
 2. Select entities and/or domains using the four filter lists:
@@ -75,6 +79,67 @@ If the `packages/` directory does not exist in your config directory, the integr
 > **Tip:** Leave all lists empty to expose every entity to Alexa.
 
 > **Note:** After changing the filter, you need to **restart Home Assistant** for the new configuration to take effect. The `alexa` integration is configured via YAML and does not support hot-reload at runtime.
+
+### Step 2B – Configure Amazon-side device management (Amazon mode)
+
+In Amazon mode, device management is configured independently from HA entity exposure:
+
+- `amazon_region` selects the Amazon marketplace.
+- `amazon_devices` is a YAML mapping for devices that are already available in Alexa and should be edited or marked for removal.
+- Runtime sync requires an active **Alexa Media Player** account session in Home Assistant.
+
+Example:
+
+```yaml
+device_id_1: New Name
+device_id_2:
+  remove: true
+device_id_3:
+  name: Kitchen Light
+  remove: false
+```
+
+Removing a mapping entry stops managing that device in this integration.  
+Setting `remove: true` will try to remove that Alexa device during sync.
+
+Sync runs when:
+- the integration starts
+- Amazon mode options are saved
+
+#### Amazon Mode GUI (Alexa Device Manager panel)
+
+When Amazon mode is active, a dedicated **Alexa Devices** entry appears in the
+Home Assistant sidebar under *Apps*.  It provides a full device-management
+interface directly inside Home Assistant — no YAML editing required.
+
+**Features:**
+
+| Feature | Description |
+|---|---|
+| Device list | Table of all Alexa appliances with name, type, group, manufacturer and appliance ID |
+| Search | Live text search by device name or appliance ID |
+| Filters | Filter by device type or room/group; combinable; one-click reset |
+| Multi-select | Checkbox per row + "Select all" for the current filtered view |
+| Bulk rename | Apply a name pattern to all selected devices (use `{name}` for the original name, e.g. *Living Room {name}*) |
+| Bulk delete | Mark all selected devices for deletion in one click |
+| Single edit | Rename any individual device via the ✏️ button |
+| Undo | Revert any pending rename or delete before applying |
+| Preview | Review all queued changes in a summary dialog before sending to Amazon |
+| Apply | Execute changes against your Amazon account; per-device success/failure shown |
+| Refresh | Reload the live device list from Amazon at any time |
+
+**Workflow example:**
+
+1. Open **Alexa Devices** in the HA sidebar.
+2. Use the search bar or filters to find devices (e.g. type *SmartHome* or group *Bedroom*).
+3. Select devices with the checkboxes.
+4. Click **✏️ Rename (pattern)** and enter a pattern like `Bedroom {name}` → click *Apply pattern*.
+5. Click **Preview & Apply** in the header to review all pending changes.
+6. Click **Apply to Amazon** to send the changes; results are shown per device.
+
+> **Note:** The panel communicates directly with the Amazon API via the
+> active Alexa Media Player session.  Changes take effect on the Amazon side
+> immediately.  They do not modify the local HA YAML package.
 
 ---
 
