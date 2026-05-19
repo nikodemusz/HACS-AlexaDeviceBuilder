@@ -106,6 +106,41 @@ Sync runs when:
 - the integration starts
 - Amazon mode options are saved
 
+#### Amazon Mode GUI (Alexa Device Manager panel)
+
+When Amazon mode is active, a dedicated **Alexa Devices** entry appears in the
+Home Assistant sidebar under *Apps*.  It provides a full device-management
+interface directly inside Home Assistant — no YAML editing required.
+
+**Features:**
+
+| Feature | Description |
+|---|---|
+| Device list | Table of all Alexa appliances with name, type, group, manufacturer and appliance ID |
+| Search | Live text search by device name or appliance ID |
+| Filters | Filter by device type or room/group; combinable; one-click reset |
+| Multi-select | Checkbox per row + "Select all" for the current filtered view |
+| Bulk rename | Apply a name pattern to all selected devices (use `{name}` for the original name, e.g. *Living Room {name}*) |
+| Bulk delete | Mark all selected devices for deletion in one click |
+| Single edit | Rename any individual device via the ✏️ button |
+| Undo | Revert any pending rename or delete before applying |
+| Preview | Review all queued changes in a summary dialog before sending to Amazon |
+| Apply | Execute changes against your Amazon account; per-device success/failure shown |
+| Refresh | Reload the live device list from Amazon at any time |
+
+**Workflow example:**
+
+1. Open **Alexa Devices** in the HA sidebar.
+2. Use the search bar or filters to find devices (e.g. type *SmartHome* or group *Bedroom*).
+3. Select devices with the checkboxes.
+4. Click **✏️ Rename (pattern)** and enter a pattern like `Bedroom {name}` → click *Apply pattern*.
+5. Click **Preview & Apply** in the header to review all pending changes.
+6. Click **Apply to Amazon** to send the changes; results are shown per device.
+
+> **Note:** The panel communicates directly with the Amazon API via the
+> active Alexa Media Player session.  Changes take effect on the Amazon side
+> immediately.  They do not modify the local HA YAML package.
+
 ---
 
 ## Generated package file

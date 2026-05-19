@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 import yaml
@@ -22,6 +23,9 @@ from .const import (
     DOMAIN,
     MODE_HA_YAML,
 )
+
+_PANEL_URL_PATH = "alexa-device-builder"
+_PANEL_STATIC_URL = "/alexa_device_builder_static"
 
 _LOGGER = logging.getLogger(__name__)
 _ALEXA_MEDIA_DOMAIN = "alexa_media"
@@ -57,6 +61,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         remove_count,
     )
     await _sync_amazon_devices(hass, entry, reason="setup")
+
+    # Register the sidebar panel and REST API views once per HA instance.
+    if not hass.data.get(DOMAIN, {}).get("panel_registered"):
+        await _register_panel(hass)
+        hass.data.setdefault(DOMAIN, {})["panel_registered"] = True
+
     _LOGGER.debug(
         "Operation mode '%s' configured for non-YAML execution path",
         operation_mode,
@@ -185,6 +195,48 @@ def _remove_yaml(full_path: str) -> None:
         _LOGGER.warning(
             "Could not remove Alexa package file %s: %s", full_path, err
         )
+
+
+async def _register_panel(hass: HomeAssistant) -> None:
+    """Register the Alexa Device Manager sidebar panel and its REST API views."""
+    from homeassistant.components import panel_custom  # pylint: disable=import-outside-toplevel
+
+    from .panel_api import (  # pylint: disable=import-outside-toplevel
+        AlexaDeviceApplyView,
+        AlexaDeviceListView,
+    )
+
+    www_path = str(Path(__file__).parent / "www")
+
+    # Serve the panel JS as a static path.  Handle both the legacy
+    # register_static_path (HA < 2024.6) and the new async API.
+    try:
+        from homeassistant.components.http import (  # pylint: disable=import-outside-toplevel
+            StaticPathConfig,
+        )
+
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig(_PANEL_STATIC_URL, www_path, cache_headers=False)]
+        )
+    except (ImportError, AttributeError):
+        hass.http.register_static_path(  # type: ignore[attr-defined]
+            _PANEL_STATIC_URL, www_path, cache_headers=False
+        )
+
+    hass.http.register_view(AlexaDeviceListView())
+    hass.http.register_view(AlexaDeviceApplyView())
+
+    await panel_custom.async_register_panel(
+        hass,
+        webcomponent_name="alexa-device-panel",
+        sidebar_title="Alexa Devices",
+        sidebar_icon="mdi:amazon-alexa",
+        frontend_url_path=_PANEL_URL_PATH,
+        module_url=f"{_PANEL_STATIC_URL}/panel.js",
+        embed_iframe=False,
+        require_admin=True,
+    )
+    _LOGGER.info("Alexa Device Manager panel registered at /%s", _PANEL_URL_PATH)
 
 
 async def _sync_amazon_devices(
